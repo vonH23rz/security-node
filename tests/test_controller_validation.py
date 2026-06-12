@@ -84,6 +84,8 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="controller-state-value controller-state-network">lan</dd>', rendered)
             self.assertIn('class="controller-state-term controller-state-capabilities-label"', rendered)
             self.assertIn('class="controller-state-value controller-state-capabilities">reachability, nmap</dd>', rendered)
+            self.assertIn(".controller-state-section", rendered)
+            self.assertIn(".controller-state-heading", rendered)
             self.assertIn(".controller-state-list", rendered)
             self.assertIn(".controller-state-term", rendered)
             self.assertIn(".controller-state-value", rendered)
