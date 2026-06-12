@@ -578,6 +578,14 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       opacity: 0.95;
     }}
 
+    .controller-state-section {{
+      margin-top: 1.5rem;
+    }}
+
+    .controller-state-heading {{
+      margin-bottom: 0.5rem;
+    }}
+
     .controller-state-list {{
       margin: 0;
     }}
