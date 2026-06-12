@@ -30,6 +30,12 @@ STATUS_CLASS_BY_NAME = {
     "UNKNOWN": "status-unknown",
 }
 
+CONFIDENCE_CLASS_BY_NAME = {
+    "UNKNOWN": "confidence-unknown",
+    "LOW": "confidence-low",
+    "MEDIUM": "confidence-medium",
+}
+
 ALLOWED_SCANNER_RESULT_STATES = {
     "VERIFIED",
     "UNEXPECTED",
@@ -47,6 +53,12 @@ def status_class(status: str) -> str:
     """Return the calm rendering class for a known status value."""
 
     return STATUS_CLASS_BY_NAME.get(status, "status-unknown")
+
+
+def confidence_class(confidence: str) -> str:
+    """Return the calm rendering class for a known confidence value."""
+
+    return CONFIDENCE_CLASS_BY_NAME.get(confidence, "confidence-unknown")
 
 
 @dataclass(frozen=True)
@@ -507,6 +519,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     capabilities = ", ".join(state.controller_capabilities) if state.controller_capabilities else "none"
     expected_surface_rows = render_expected_surface_rows(state)
     observed_result_rows = render_observed_result_rows(state)
+    security_confidence_class = _html.escape(confidence_class(state.security_confidence))
 
     html = f"""<!doctype html>
 <html lang="en">
@@ -539,13 +552,29 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     .status-unexpected {{
       font-weight: 800;
     }}
+
+    .security-confidence {{
+      font-weight: 700;
+    }}
+
+    .confidence-unknown {{
+      opacity: 0.8;
+    }}
+
+    .confidence-low {{
+      font-weight: 800;
+    }}
+
+    .confidence-medium {{
+      opacity: 1;
+    }}
   </style>
 </head>
 <body>
   <main>
     <h1>Security Node</h1>
     <p>Site: {_html.escape(state.site_name)}</p>
-    <p>Security Confidence: {_html.escape(state.security_confidence)}</p>
+    <p class="security-confidence {security_confidence_class}">Security Confidence: {_html.escape(state.security_confidence)}</p>
     <p>Verification Level: {_html.escape(state.verification_level)}</p>
     <p>Config schema validation passed before rendering.</p>
 
