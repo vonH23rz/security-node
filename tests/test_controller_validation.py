@@ -79,6 +79,94 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn("summary: 0 error(s), 0 warning(s)", result.stdout)
             self.assertIn("Wrote dashboard from validated state model", result.stdout)
 
+    def test_controller_renders_optional_scanner_results_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: imported-test-evidence
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            rendered = output.read_text(encoding="utf-8")
+            self.assertIn("Observed Scanner Results: 1", rendered)
+            self.assertIn("imported-test-evidence", rendered)
+            self.assertIn("2026-06-12T10:00:00+00:00", rendered)
+            self.assertIn('class="status status-verified">VERIFIED</span>', rendered)
+            self.assertEqual(rendered.count('class="status status-not-verified">NOT VERIFIED</span>'), 2)
+            self.assertNotIn(">OK</span>", rendered)
+
+    def test_controller_refuses_invalid_scanner_results_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    host_id: router
+                    host_address: 192.168.1.1
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn("scanner results file must contain a YAML list", result.stdout)
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
     def test_controller_refuses_to_render_when_config_is_invalid(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             config = Path(tmpdir) / "invalid.yaml"

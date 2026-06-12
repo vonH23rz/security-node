@@ -165,11 +165,74 @@ def build_expected_surface(config_data: dict[str, Any]) -> tuple[ExpectedPort, .
     return tuple(expected)
 
 
-def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
+def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, ...]:
+    """Load optional scanner results from a YAML evidence file.
+
+    This does not run a scanner. It only ingests explicit observed evidence
+    produced elsewhere, so the Controller never invents verification results.
+    """
+
+    if scanner_results is None:
+        return ()
+
+    with scanner_results.open("r", encoding="utf-8") as handle:
+        loaded = yaml.safe_load(handle)
+
+    if loaded is None:
+        return ()
+
+    if not isinstance(loaded, list):
+        raise ValueError("scanner results file must contain a YAML list")
+
+    results: list[ScannerResult] = []
+    required_fields = {
+        "host_id",
+        "host_address",
+        "protocol",
+        "port",
+        "observed_state",
+        "source",
+        "checked_at",
+    }
+
+    for index, item in enumerate(loaded):
+        if not isinstance(item, dict):
+            raise ValueError(f"scanner result #{index + 1}: must be a mapping")
+
+        missing = sorted(required_fields - set(item))
+        if missing:
+            raise ValueError(
+                f"scanner result #{index + 1}: missing required field(s): {', '.join(missing)}"
+            )
+
+        port = item["port"]
+        if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
+            raise ValueError(f"scanner result #{index + 1}: port must be between 1 and 65535")
+
+        results.append(
+            ScannerResult(
+                host_id=str(item["host_id"]),
+                host_address=str(item["host_address"]),
+                protocol=str(item["protocol"]),
+                port=port,
+                observed_state=str(item["observed_state"]),
+                source=str(item["source"]),
+                checked_at=str(item["checked_at"]),
+            )
+        )
+
+    return tuple(results)
+
+
+def build_state_model(
+    config_data: dict[str, Any],
+    observed_results: tuple[ScannerResult, ...] = (),
+) -> SecurityNodeState:
     """Build the normalized Controller state model.
 
     This intentionally does not scan anything yet. It only turns a validated
-    configuration file into stable Controller state for later scanner slices.
+    configuration file and optional explicit scanner evidence into stable
+    Controller state for later scanner slices.
     """
 
     site = config_data["site"]
@@ -197,8 +260,8 @@ def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
         expected_surface_not_verified_count=sum(
             1 for item in expected_surface if item.verification_status == "NOT VERIFIED"
         ),
-        observed_results=(),
-        observed_result_count=0,
+        observed_results=observed_results,
+        observed_result_count=len(observed_results),
         verification_level="Controller only",
         security_confidence="UNKNOWN",
     )
@@ -396,10 +459,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Security Node Controller")
     parser.add_argument("--config", default="examples/config.example.yaml")
     parser.add_argument("--output", default="html/index.html")
+    parser.add_argument(
+        "--scanner-results",
+        default=None,
+        help="Optional YAML file containing observed scanner evidence. This does not run a scanner.",
+    )
     args = parser.parse_args()
 
     config = Path(args.config)
     output = Path(args.output)
+    scanner_results = Path(args.scanner_results) if args.scanner_results else None
 
     validator = load_validator_module()
     report = validator.validate_config(config)
@@ -411,7 +480,15 @@ def main() -> int:
 
     print_validation_report(config, report)
     config_data = load_validated_config(config)
-    state = build_state_model(config_data)
+
+    try:
+        observed_results = load_scanner_results(scanner_results)
+    except ValueError as error:
+        print(f"ERROR: {error}")
+        print("FAILED: refusing to render dashboard from invalid scanner resultss")
+        return 1
+
+    state = build_state_model(config_data, observed_results=observed_results)
     render_dashboard(output, state)
     print(f"Wrote dashboard from validated state model: {output}")
     return 0
