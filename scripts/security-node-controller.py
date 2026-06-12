@@ -542,6 +542,18 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
   <title>Security Node</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    .posture-summary {{
+      padding-left: 1.25rem;
+    }}
+
+    .summary-metric {{
+      margin: 0.25rem 0;
+    }}
+
+    .summary-metric-unexpected {{
+      font-weight: 700;
+    }}
+
     .status {{
       border: 1px solid currentColor;
       border-radius: 999px;
@@ -623,16 +635,16 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     <section aria-labelledby="configuration-summary">
       <h2 id="configuration-summary">Configuration Summary</h2>
-      <ul>
-        <li>Networks: {state.network_count}</li>
-        <li>Hosts: {state.host_count}</li>
-        <li>Probes: {state.probe_count}</li>
-        <li>Accepted Risks: {state.accepted_risk_count}</li>
-        <li>External Exposure Expectations: {state.external_exposure_expected_count}</li>
-        <li>Expected Verification Surface Items: {state.expected_surface_count}</li>
-        <li>Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</li>
-        <li>Observed Scanner Results: {state.observed_result_count}</li>
-        <li>Observed Scanner Results UNEXPECTED: {state.observed_result_unexpected_count}</li>
+      <ul class="posture-summary">
+        <li class="summary-metric summary-metric-networks">Networks: {state.network_count}</li>
+        <li class="summary-metric summary-metric-hosts">Hosts: {state.host_count}</li>
+        <li class="summary-metric summary-metric-probes">Probes: {state.probe_count}</li>
+        <li class="summary-metric summary-metric-accepted-risks">Accepted Risks: {state.accepted_risk_count}</li>
+        <li class="summary-metric summary-metric-external-exposure">External Exposure Expectations: {state.external_exposure_expected_count}</li>
+        <li class="summary-metric summary-metric-expected-surface">Expected Verification Surface Items: {state.expected_surface_count}</li>
+        <li class="summary-metric summary-metric-expected-not-verified">Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</li>
+        <li class="summary-metric summary-metric-observed-results">Observed Scanner Results: {state.observed_result_count}</li>
+        <li class="summary-metric summary-metric-unexpected">Observed Scanner Results UNEXPECTED: {state.observed_result_unexpected_count}</li>
       </ul>
     </section>
 
