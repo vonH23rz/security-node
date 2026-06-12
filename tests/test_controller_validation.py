@@ -3,6 +3,7 @@ import sys
 import tempfile
 import textwrap
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -12,6 +13,10 @@ EXAMPLE_CONFIG = ROOT / "examples" / "config.example.yaml"
 
 
 class ControllerValidationTests(unittest.TestCase):
+    @staticmethod
+    def fresh_checked_at(minutes: int = 0) -> str:
+        return (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat()
+
     def test_controller_renders_when_config_is_valid(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output = Path(tmpdir) / "index.html"
@@ -90,6 +95,8 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="controller-state-value controller-state-network">lan</dd>', rendered)
             self.assertIn('class="controller-state-term controller-state-capabilities-label"', rendered)
             self.assertIn('class="controller-state-value controller-state-capabilities">reachability, nmap</dd>', rendered)
+            self.assertIn('class="controller-state-term controller-state-scanner-evidence-max-age-label"', rendered)
+            self.assertIn('class="controller-state-value controller-state-scanner-evidence-max-age">1440 minutes</dd>', rendered)
             self.assertIn(".controller-state-section", rendered)
             self.assertIn(".controller-state-heading", rendered)
             self.assertIn(".controller-state-list", rendered)
@@ -196,14 +203,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -239,7 +246,7 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="security-confidence confidence-unknown"', rendered)
             self.assertIn('class="confidence-badge confidence-unknown">UNKNOWN</span>', rendered)
             self.assertIn("imported-test-evidence", rendered)
-            self.assertIn("2026-06-12T10:00:00+00:00", rendered)
+            self.assertIn('class="observed-result-cell observed-result-checked-at">', rendered)
             self.assertIn('class="observed-results-table"', rendered)
             self.assertEqual(rendered.count('class="observed-result-row"'), 1)
             self.assertIn('class="observed-result-cell observed-result-host-id">router</td>', rendered)
@@ -248,7 +255,10 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="observed-result-cell observed-result-port">443</td>', rendered)
             self.assertIn('class="observed-result-cell observed-result-state"><span class="status status-verified">VERIFIED</span></td>', rendered)
             self.assertIn('class="observed-result-cell observed-result-source">imported-test-evidence</td>', rendered)
-            self.assertIn('class="observed-result-cell observed-result-checked-at">2026-06-12T10:00:00+00:00</td>', rendered)
+            self.assertRegex(
+                rendered,
+                r'class="observed-result-cell observed-result-checked-at">[^<]+\+00:00</td>',
+            )
             self.assertEqual(rendered.count('class="status status-verified">VERIFIED</span>'), 2)
             self.assertEqual(rendered.count('class="status status-not-verified">NOT VERIFIED</span>'), 1)
             self.assertEqual(rendered.count('class="expected-surface-row"'), 2)
@@ -262,14 +272,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 22
                       observed_state: VERIFIED
                       source: imported-nonmatching-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -320,14 +330,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source: imported-matching-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -376,14 +386,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: ACCEPTED
                       source: accepted-classification-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -429,14 +439,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 22
                       observed_state: ACCEPTED
                       source: accepted-classification-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -482,14 +492,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: unknown-host
                       host_address: 192.168.250.250
                       protocol: tcp
                       port: 443
                       observed_state: ACCEPTED
                       source: accepted-classification-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -538,14 +548,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: UNKNOWN
                       source: unknown-classification-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -591,14 +601,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 22
                       observed_state: UNKNOWN
                       source: unknown-classification-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -644,14 +654,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: unknown-host
                       host_address: 192.168.250.250
                       protocol: tcp
                       port: 443
                       observed_state: UNKNOWN
                       source: unknown-classification-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -698,21 +708,21 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source: duplicate-key-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source: duplicate-key-test
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -754,21 +764,21 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source: duplicate-key-test-a
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: UNKNOWN
                       source: duplicate-key-test-b
-                      checked_at: "2026-06-12T10:01:00+00:00"
+                      checked_at: "{self.fresh_checked_at(minutes=1)}"
                     """
                 ).strip()
                 + "\n",
@@ -804,7 +814,8 @@ class ControllerValidationTests(unittest.TestCase):
             )
 
 
-    def test_controller_refuses_invalid_scanner_results_file(self):
+
+    def test_controller_refuses_stale_scanner_result_checked_at(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output = Path(tmpdir) / "index.html"
             scanner_results = Path(tmpdir) / "scanner-results.yaml"
@@ -812,6 +823,236 @@ class ControllerValidationTests(unittest.TestCase):
             scanner_results.write_text(
                 textwrap.dedent(
                     """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: stale-evidence-test
+                      checked_at: "1999-01-01T00:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(
+                "scanner result #1: checked_at is older than scanner evidence max age of 1440 minutes",
+                result.stdout,
+            )
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
+    def test_controller_refuses_future_scanner_result_checked_at(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    f"""
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: future-evidence-test
+                      checked_at: "{self.fresh_checked_at(minutes=10)}"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(
+                "scanner result #1: checked_at must not be more than 5 minutes in the future",
+                result.stdout,
+            )
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
+    def test_controller_applies_configured_scanner_evidence_max_age_minutes(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Path(tmpdir) / "config.yaml"
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            config_text = EXAMPLE_CONFIG.read_text(encoding="utf-8")
+            config.write_text(
+                config_text.replace(
+                    "scanner_evidence_max_age_minutes: 1440",
+                    "scanner_evidence_max_age_minutes: 30",
+                ),
+                encoding="utf-8",
+            )
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    f"""
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: configured-freshness-test
+                      checked_at: "{self.fresh_checked_at(minutes=-60)}"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(config),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(
+                "scanner result #1: checked_at is older than scanner evidence max age of 30 minutes",
+                result.stdout,
+            )
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
+    def test_controller_refuses_invalid_scanner_evidence_max_age_step(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Path(tmpdir) / "config.yaml"
+            output = Path(tmpdir) / "index.html"
+
+            config_text = EXAMPLE_CONFIG.read_text(encoding="utf-8")
+            config.write_text(
+                config_text.replace(
+                    "scanner_evidence_max_age_minutes: 1440",
+                    "scanner_evidence_max_age_minutes: 45",
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(config),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(
+                "controller.scanner_evidence_max_age_minutes: must be in 30-minute steps",
+                result.stdout,
+            )
+
+    def test_controller_refuses_too_large_scanner_evidence_max_age(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config = Path(tmpdir) / "config.yaml"
+            output = Path(tmpdir) / "index.html"
+
+            config_text = EXAMPLE_CONFIG.read_text(encoding="utf-8")
+            config.write_text(
+                config_text.replace(
+                    "scanner_evidence_max_age_minutes: 1440",
+                    "scanner_evidence_max_age_minutes: 1500",
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(config),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(
+                "controller.scanner_evidence_max_age_minutes: must be between 30 and 1440 minutes",
+                result.stdout,
+            )
+
+
+    def test_controller_refuses_invalid_scanner_results_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    f"""
                     host_id: router
                     host_address: 192.168.1.1
                     """
@@ -852,14 +1093,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: OPEN
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -901,14 +1142,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: icmp
                       port: 443
                       observed_state: VERIFIED
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -950,14 +1191,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: ''
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -996,14 +1237,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: true
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -1042,14 +1283,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: VERIFIED
                       source:
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -1088,7 +1329,7 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
@@ -1134,7 +1375,7 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
@@ -1183,7 +1424,7 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
@@ -1232,14 +1473,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: true
                       port: 443
                       observed_state: VERIFIED
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -1278,14 +1519,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: ''
                       port: 443
                       observed_state: VERIFIED
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -1324,14 +1565,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: true
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -1370,14 +1611,14 @@ class ControllerValidationTests(unittest.TestCase):
 
             scanner_results.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     - host_id: router
                       host_address: 192.168.1.1
                       protocol: tcp
                       port: 443
                       observed_state: ''
                       source: imported-test-evidence
-                      checked_at: "2026-06-12T10:00:00+00:00"
+                      checked_at: "{self.fresh_checked_at()}"
                     """
                 ).strip()
                 + "\n",
@@ -1416,7 +1657,7 @@ class ControllerValidationTests(unittest.TestCase):
 
             config.write_text(
                 textwrap.dedent(
-                    """
+                    f"""
                     site:
                       name: Broken
                     controller:
@@ -1462,21 +1703,21 @@ class ControllerValidationTests(unittest.TestCase):
             output = Path(tmpdir) / "dashboard.html"
 
             scanner_results.write_text(
-                """\
+                f"""\
 - host_id: router
   host_address: 192.168.1.1
   protocol: tcp
   port: 80
   observed_state: VERIFIED
   source: imported-full-surface-test-evidence
-  checked_at: "2026-06-12T10:00:00+00:00"
+  checked_at: "{self.fresh_checked_at()}"
 - host_id: router
   host_address: 192.168.1.1
   protocol: tcp
   port: 443
   observed_state: VERIFIED
   source: imported-full-surface-test-evidence
-  checked_at: "2026-06-12T10:00:00+00:00"
+  checked_at: "{self.fresh_checked_at()}"
 """,
                 encoding="utf-8",
             )

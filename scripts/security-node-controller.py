@@ -49,6 +49,9 @@ ALLOWED_SCANNER_RESULT_PROTOCOLS = {
     "udp",
 }
 
+DEFAULT_SCANNER_EVIDENCE_MAX_AGE_MINUTES = 24 * 60
+SCANNER_EVIDENCE_FUTURE_TOLERANCE_MINUTES = 5
+
 
 def status_class(status: str) -> str:
     """Return the calm rendering class for a known status value."""
@@ -101,6 +104,7 @@ class SecurityNodeState:
     controller_display_name: str
     controller_network: str
     controller_capabilities: tuple[str, ...]
+    scanner_evidence_max_age_minutes: int
     network_count: int
     host_count: int
     probe_count: int
@@ -331,7 +335,7 @@ def scanner_result_string_field(item: dict[str, Any], index: int, field: str) ->
     return value.strip()
 
 
-def scanner_result_checked_at_field(item: dict[str, Any], index: int) -> str:
+def scanner_result_checked_at_field(item: dict[str, Any], index: int) -> tuple[str, datetime]:
     """Return a required ISO-8601 timestamp with timezone from scanner evidence."""
 
     checked_at = scanner_result_string_field(item, index, "checked_at")
@@ -349,10 +353,50 @@ def scanner_result_checked_at_field(item: dict[str, Any], index: int) -> str:
             f"scanner result #{index + 1}: checked_at must be an ISO-8601 timestamp with timezone offset"
         )
 
-    return checked_at
+    return checked_at, parsed
 
 
-def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, ...]:
+def validate_scanner_result_checked_at_freshness(
+    checked_at: datetime,
+    index: int,
+    scanner_evidence_max_age_minutes: int,
+    now: datetime,
+) -> None:
+    """Refuse impossible or stale scanner evidence timestamps."""
+
+    checked_at_utc = checked_at.astimezone(_dt.timezone.utc)
+    now_utc = now.astimezone(_dt.timezone.utc)
+
+    if checked_at_utc > now_utc + _dt.timedelta(minutes=SCANNER_EVIDENCE_FUTURE_TOLERANCE_MINUTES):
+        raise ValueError(
+            f"scanner result #{index + 1}: checked_at must not be more than "
+            f"{SCANNER_EVIDENCE_FUTURE_TOLERANCE_MINUTES} minutes in the future"
+        )
+
+    if checked_at_utc < now_utc - _dt.timedelta(minutes=scanner_evidence_max_age_minutes):
+        raise ValueError(
+            f"scanner result #{index + 1}: checked_at is older than scanner evidence "
+            f"max age of {scanner_evidence_max_age_minutes} minutes"
+        )
+
+
+def scanner_evidence_max_age_minutes_from_config(config_data: dict[str, Any]) -> int:
+    """Return configured scanner evidence freshness window in minutes."""
+
+    controller = config_data.get("controller", {})
+    return int(
+        controller.get(
+            "scanner_evidence_max_age_minutes",
+            DEFAULT_SCANNER_EVIDENCE_MAX_AGE_MINUTES,
+        )
+    )
+
+
+def load_scanner_results(
+    scanner_results: Path | None,
+    scanner_evidence_max_age_minutes: int = DEFAULT_SCANNER_EVIDENCE_MAX_AGE_MINUTES,
+    now: datetime | None = None,
+) -> tuple[ScannerResult, ...]:
     """Load optional scanner results from a YAML evidence file.
 
     This does not run a scanner. It only ingests explicit observed evidence
@@ -361,6 +405,8 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
 
     if scanner_results is None:
         return ()
+
+    now = datetime.now(_dt.timezone.utc) if now is None else now
 
     with scanner_results.open("r", encoding="utf-8") as handle:
         loaded = yaml.safe_load(handle)
@@ -398,7 +444,13 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
         protocol = scanner_result_string_field(item, index, "protocol").lower()
         observed_state = scanner_result_string_field(item, index, "observed_state").upper()
         source = scanner_result_string_field(item, index, "source")
-        checked_at = scanner_result_checked_at_field(item, index)
+        checked_at, checked_at_timestamp = scanner_result_checked_at_field(item, index)
+        validate_scanner_result_checked_at_freshness(
+            checked_at_timestamp,
+            index,
+            scanner_evidence_max_age_minutes,
+            now,
+        )
 
         port = item["port"]
         if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
@@ -452,6 +504,7 @@ def build_state_model(
     site = config_data["site"]
     controller = config_data["controller"]
     external_exposure = config_data["external_exposure"]
+    scanner_evidence_max_age_minutes = scanner_evidence_max_age_minutes_from_config(config_data)
     classified_observed_results = classify_observed_results(config_data, observed_results)
     expected_surface = build_expected_surface(
         config_data,
@@ -477,6 +530,7 @@ def build_state_model(
         controller_display_name=controller_display_name,
         controller_network=str(controller["network"]),
         controller_capabilities=capabilities,
+        scanner_evidence_max_age_minutes=scanner_evidence_max_age_minutes,
         network_count=len(config_data.get("networks", [])),
         host_count=len(config_data.get("hosts", [])),
         probe_count=len(config_data.get("probes", [])),
@@ -800,6 +854,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         <dd class="controller-state-value controller-state-network">{_html.escape(state.controller_network)}</dd>
         <dt class="controller-state-term controller-state-capabilities-label">Controller Capabilities</dt>
         <dd class="controller-state-value controller-state-capabilities">{_html.escape(capabilities)}</dd>
+        <dt class="controller-state-term controller-state-scanner-evidence-max-age-label">Scanner Evidence Max Age</dt>
+        <dd class="controller-state-value controller-state-scanner-evidence-max-age">{state.scanner_evidence_max_age_minutes} minutes</dd>
       </dl>
     </section>
 
@@ -898,7 +954,10 @@ def main() -> int:
     config_data = load_validated_config(config)
 
     try:
-        observed_results = load_scanner_results(scanner_results)
+        observed_results = load_scanner_results(
+            scanner_results,
+            scanner_evidence_max_age_minutes=scanner_evidence_max_age_minutes_from_config(config_data),
+        )
     except ValueError as error:
         print(f"ERROR: {error}")
         print("FAILED: refusing to render dashboard from invalid scanner results")

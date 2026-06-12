@@ -34,6 +34,10 @@ EXPECTED_EXTERNAL_STATES = {
     "not_configured",
 }
 
+SCANNER_EVIDENCE_MAX_AGE_MINUTES_MIN = 30
+SCANNER_EVIDENCE_MAX_AGE_MINUTES_MAX = 24 * 60
+SCANNER_EVIDENCE_MAX_AGE_MINUTES_STEP = 30
+
 RISK_STATUSES = {
     "accepted",
 }
@@ -110,6 +114,29 @@ def validate_capabilities(value: Any, path: str, report: ValidationReport) -> No
         if capability in seen:
             report.warning(item_path, f"duplicate capability '{capability}'")
         seen.add(capability)
+
+
+def validate_scanner_evidence_max_age_minutes(
+    value: Any,
+    path: str,
+    report: ValidationReport,
+) -> None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        report.error(path, "must be an integer number of minutes")
+        return
+
+    if (
+        value < SCANNER_EVIDENCE_MAX_AGE_MINUTES_MIN
+        or value > SCANNER_EVIDENCE_MAX_AGE_MINUTES_MAX
+    ):
+        report.error(
+            path,
+            "must be between 30 and 1440 minutes",
+        )
+        return
+
+    if value % SCANNER_EVIDENCE_MAX_AGE_MINUTES_STEP != 0:
+        report.error(path, "must be in 30-minute steps")
 
 
 def validate_top_level(config: Any, report: ValidationReport) -> dict[str, Any]:
@@ -212,6 +239,13 @@ def validate_controller(
         report.error("controller.network", "must be a non-empty string")
     elif network_id not in networks_by_id:
         report.error("controller.network", f"references unknown network '{network_id}'")
+
+    if "scanner_evidence_max_age_minutes" in controller:
+        validate_scanner_evidence_max_age_minutes(
+            controller.get("scanner_evidence_max_age_minutes"),
+            "controller.scanner_evidence_max_age_minutes",
+            report,
+        )
 
     validate_capabilities(controller.get("capabilities"), "controller.capabilities", report)
 
