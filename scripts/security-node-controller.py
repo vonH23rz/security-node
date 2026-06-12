@@ -640,7 +640,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .expected-surface-header-cell,
-    .expected-surface-cell {{
+    .expected-surface-cell,
+    .observed-results-header-cell {{
       vertical-align: top;
     }}
 
@@ -788,14 +789,14 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       <p class="observed-results-description">Scanner result model is prepared, but live scanner logic is not implemented yet.</p>
       <table class="observed-results-table">
         <thead>
-          <tr>
-            <th>Host ID</th>
-            <th>Address</th>
-            <th>Protocol</th>
-            <th>Port</th>
-            <th>Observed State</th>
-            <th>Source</th>
-            <th>Checked At</th>
+          <tr class="observed-results-header-row">
+            <th class="observed-results-header-cell observed-results-header-host-id">Host ID</th>
+            <th class="observed-results-header-cell observed-results-header-address">Address</th>
+            <th class="observed-results-header-cell observed-results-header-protocol">Protocol</th>
+            <th class="observed-results-header-cell observed-results-header-port">Port</th>
+            <th class="observed-results-header-cell observed-results-header-state">Observed State</th>
+            <th class="observed-results-header-cell observed-results-header-source">Source</th>
+            <th class="observed-results-header-cell observed-results-header-checked-at">Checked At</th>
           </tr>
         </thead>
         <tbody>
