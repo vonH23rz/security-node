@@ -480,18 +480,23 @@ def render_expected_surface_rows(state: SecurityNodeState) -> str:
     """Render expected verification surface rows."""
 
     if not state.expected_surface:
-        return "        <tr><td colspan=\"6\">No expected host ports configured.</td></tr>"
+        return (
+            "        <tr class=\"expected-surface-row expected-surface-empty\">"
+            "<td class=\"expected-surface-cell expected-surface-empty-cell\" colspan=\"6\">"
+            "No expected host ports configured."
+            "</td></tr>"
+        )
 
     rows = []
     for item in state.expected_surface:
         rows.append(
-            "        <tr>"
-            f"<td>{_html.escape(item.host_display_name)}</td>"
-            f"<td>{_html.escape(item.host_address)}</td>"
-            f"<td>{_html.escape(item.network_id)}</td>"
-            f"<td>{_html.escape(item.protocol.upper())}</td>"
-            f"<td>{item.port}</td>"
-            f"<td>{render_status_badge(item.verification_status)}</td>"
+            "        <tr class=\"expected-surface-row\">"
+            f"<td class=\"expected-surface-cell expected-surface-host\">{_html.escape(item.host_display_name)}</td>"
+            f"<td class=\"expected-surface-cell expected-surface-address\">{_html.escape(item.host_address)}</td>"
+            f"<td class=\"expected-surface-cell expected-surface-network\">{_html.escape(item.network_id)}</td>"
+            f"<td class=\"expected-surface-cell expected-surface-protocol\">{_html.escape(item.protocol.upper())}</td>"
+            f"<td class=\"expected-surface-cell expected-surface-port\">{item.port}</td>"
+            f"<td class=\"expected-surface-cell expected-surface-status\">{render_status_badge(item.verification_status)}</td>"
             "</tr>"
         )
 
@@ -552,6 +557,15 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     .summary-metric-unexpected {{
       font-weight: 700;
+    }}
+
+    .expected-surface-table {{
+      border-collapse: collapse;
+      width: 100%;
+    }}
+
+    .expected-surface-cell {{
+      vertical-align: top;
     }}
 
     .status {{
@@ -651,7 +665,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     <section aria-labelledby="expected-verification-surface">
       <h2 id="expected-verification-surface">Expected Verification Surface</h2>
       <p>Configured host ports that should be checked by future scanner logic.</p>
-      <table>
+      <table class="expected-surface-table">
         <thead>
           <tr>
             <th>Host</th>
