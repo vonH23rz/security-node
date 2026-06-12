@@ -146,14 +146,47 @@ def load_validated_config(config: Path) -> dict[str, Any]:
     return loaded
 
 
-def build_expected_surface(config_data: dict[str, Any]) -> tuple[ExpectedPort, ...]:
+def expected_surface_key(
+    host_id: str,
+    host_address: str,
+    protocol: str,
+    port: int,
+) -> tuple[str, str, str, int]:
+    """Return the stable comparison key for expected ports and evidence."""
+
+    return (host_id, host_address, protocol.lower(), port)
+
+
+def verified_expected_surface_keys(
+    observed_results: tuple[ScannerResult, ...],
+) -> set[tuple[str, str, str, int]]:
+    """Return expected-surface keys with explicit VERIFIED evidence."""
+
+    return {
+        expected_surface_key(
+            result.host_id,
+            result.host_address,
+            result.protocol,
+            result.port,
+        )
+        for result in observed_results
+        if result.observed_state == "VERIFIED"
+    }
+
+
+def build_expected_surface(
+    config_data: dict[str, Any],
+    observed_results: tuple[ScannerResult, ...] = (),
+) -> tuple[ExpectedPort, ...]:
     """Build the expected host/port surface from validated host definitions.
 
-    This is not scan output. It is the configured expectation that future
-    scanner results will be compared against.
+    This is not scan output. It is the configured expectation matched against
+    optional explicit scanner evidence. Without matching VERIFIED evidence,
+    expected ports remain NOT VERIFIED.
     """
 
     expected: list[ExpectedPort] = []
+    verified_keys = verified_expected_surface_keys(observed_results)
 
     for host in config_data.get("hosts", []):
         host_id = str(host["id"])
@@ -162,15 +195,24 @@ def build_expected_surface(config_data: dict[str, Any]) -> tuple[ExpectedPort, .
         network_id = str(host["network"])
 
         for port in host.get("expected_ports", []):
+            protocol = "tcp"
+            expected_key = expected_surface_key(
+                host_id,
+                host_address,
+                protocol,
+                int(port),
+            )
+            verification_status = "VERIFIED" if expected_key in verified_keys else "NOT VERIFIED"
+
             expected.append(
                 ExpectedPort(
                     host_id=host_id,
                     host_display_name=host_display_name,
                     host_address=host_address,
                     network_id=network_id,
-                    protocol="tcp",
+                    protocol=protocol,
                     port=int(port),
-                    verification_status="NOT VERIFIED",
+                    verification_status=verification_status,
                 )
             )
 
@@ -264,7 +306,7 @@ def build_state_model(
     site = config_data["site"]
     controller = config_data["controller"]
     external_exposure = config_data["external_exposure"]
-    expected_surface = build_expected_surface(config_data)
+    expected_surface = build_expected_surface(config_data, observed_results=observed_results)
 
     controller_id = str(controller["id"])
     controller_display_name = str(controller.get("display_name") or controller_id)
