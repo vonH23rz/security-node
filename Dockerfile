@@ -6,6 +6,9 @@ RUN apt-get update \
 
 WORKDIR /app
 
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
 COPY scripts/ /app/scripts/
 COPY examples/ /app/examples/
 
