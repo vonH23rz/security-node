@@ -691,6 +691,104 @@ class ControllerValidationTests(unittest.TestCase):
                 result.stdout,
             )
 
+    def test_controller_refuses_non_timestamp_scanner_result_checked_at(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: imported-test-evidence
+                      checked_at: not-a-timestamp
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(
+                "scanner result #1: checked_at must be an ISO-8601 timestamp with timezone offset",
+                result.stdout,
+            )
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
+    def test_controller_refuses_timezone_less_scanner_result_checked_at(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: imported-test-evidence
+                      checked_at: "2026-06-12T10:00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn(
+                "scanner result #1: checked_at must be an ISO-8601 timestamp with timezone offset",
+                result.stdout,
+            )
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
     def test_controller_refuses_boolean_scanner_result_protocol(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output = Path(tmpdir) / "index.html"

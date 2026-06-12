@@ -14,6 +14,7 @@ import argparse
 import datetime as _dt
 import html as _html
 import importlib.util
+from datetime import datetime
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -330,6 +331,27 @@ def scanner_result_string_field(item: dict[str, Any], index: int, field: str) ->
     return value.strip()
 
 
+def scanner_result_checked_at_field(item: dict[str, Any], index: int) -> str:
+    """Return a required ISO-8601 timestamp with timezone from scanner evidence."""
+
+    checked_at = scanner_result_string_field(item, index, "checked_at")
+    parse_value = checked_at[:-1] + "+00:00" if checked_at.endswith("Z") else checked_at
+
+    try:
+        parsed = datetime.fromisoformat(parse_value)
+    except ValueError as error:
+        raise ValueError(
+            f"scanner result #{index + 1}: checked_at must be an ISO-8601 timestamp with timezone offset"
+        ) from error
+
+    if parsed.tzinfo is None or parsed.tzinfo.utcoffset(parsed) is None:
+        raise ValueError(
+            f"scanner result #{index + 1}: checked_at must be an ISO-8601 timestamp with timezone offset"
+        )
+
+    return checked_at
+
+
 def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, ...]:
     """Load optional scanner results from a YAML evidence file.
 
@@ -375,7 +397,7 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
         protocol = scanner_result_string_field(item, index, "protocol").lower()
         observed_state = scanner_result_string_field(item, index, "observed_state").upper()
         source = scanner_result_string_field(item, index, "source")
-        checked_at = scanner_result_string_field(item, index, "checked_at")
+        checked_at = scanner_result_checked_at_field(item, index)
 
         port = item["port"]
         if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
