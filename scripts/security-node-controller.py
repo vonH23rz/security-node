@@ -583,6 +583,14 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       margin-bottom: 0.5rem;
     }}
 
+    .configuration-summary-section {{
+      margin-top: 1.5rem;
+    }}
+
+    .configuration-summary-heading {{
+      margin-bottom: 0.5rem;
+    }}
+
     .posture-summary {{
       padding-left: 1.25rem;
     }}
@@ -696,8 +704,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       </dl>
     </section>
 
-    <section aria-labelledby="configuration-summary">
-      <h2 id="configuration-summary">Configuration Summary</h2>
+    <section class="configuration-summary-section" aria-labelledby="configuration-summary">
+      <h2 id="configuration-summary" class="configuration-summary-heading">Configuration Summary</h2>
       <ul class="posture-summary">
         <li class="summary-metric summary-metric-networks">Networks: {state.network_count}</li>
         <li class="summary-metric summary-metric-hosts">Hosts: {state.host_count}</li>
