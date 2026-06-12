@@ -639,6 +639,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       width: 100%;
     }}
 
+    .expected-surface-header-cell,
     .expected-surface-cell {{
       vertical-align: top;
     }}
@@ -767,13 +768,13 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       <p class="expected-surface-description">Configured host ports that should be checked by future scanner logic.</p>
       <table class="expected-surface-table">
         <thead>
-          <tr>
-            <th>Host</th>
-            <th>Address</th>
-            <th>Network</th>
-            <th>Protocol</th>
-            <th>Port</th>
-            <th>Status</th>
+          <tr class="expected-surface-header-row">
+            <th class="expected-surface-header-cell expected-surface-header-host">Host</th>
+            <th class="expected-surface-header-cell expected-surface-header-address">Address</th>
+            <th class="expected-surface-header-cell expected-surface-header-network">Network</th>
+            <th class="expected-surface-header-cell expected-surface-header-protocol">Protocol</th>
+            <th class="expected-surface-header-cell expected-surface-header-port">Port</th>
+            <th class="expected-surface-header-cell expected-surface-header-status">Status</th>
           </tr>
         </thead>
         <tbody>
