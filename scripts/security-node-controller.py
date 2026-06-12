@@ -662,6 +662,15 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       width: 100%;
     }}
 
+    .page-footer {{
+      margin-top: 1.5rem;
+    }}
+
+    .scanner-implementation-notice,
+    .generated-timestamp {{
+      margin: 0.35rem 0;
+    }}
+
     .observed-result-cell {{
       vertical-align: top;
     }}
@@ -805,8 +814,10 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       </table>
     </section>
 
-    <p>Scanner logic is not implemented yet.</p>
-    <p>Generated: {now}</p>
+    <footer class="page-footer">
+      <p class="scanner-implementation-notice">Scanner logic is not implemented yet.</p>
+      <p class="generated-timestamp">Generated: {now}</p>
+    </footer>
   </main>
 </body>
 </html>
