@@ -8,6 +8,7 @@ controller:
   id: controller
   display_name: Security Node Controller
   network: lan
+  scanner_evidence_max_age_minutes: 1440
   capabilities:
     - reachability
     - nmap
