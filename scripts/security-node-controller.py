@@ -241,9 +241,9 @@ def classify_observed_results(
 ) -> tuple[ScannerResult, ...]:
     """Classify observed evidence against the configured expected surface.
 
-    VERIFIED evidence for a non-configured surface item is unexpected. Other
-    observed states keep their imported value until later policy slices define
-    more nuanced handling.
+    VERIFIED or ACCEPTED evidence for a non-configured surface item is
+    unexpected. Other observed states keep their imported value until later
+    policy slices define more nuanced handling.
     """
 
     expected_keys = configured_expected_surface_keys(config_data)
@@ -258,7 +258,7 @@ def classify_observed_results(
         )
         observed_state = result.observed_state
 
-        if observed_state == "VERIFIED" and result_key not in expected_keys:
+        if observed_state in {"ACCEPTED", "VERIFIED"} and result_key not in expected_keys:
             observed_state = "UNEXPECTED"
 
         classified.append(

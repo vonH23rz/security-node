@@ -368,6 +368,167 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertEqual(rendered.count('class="status status-not-verified">NOT VERIFIED</span>'), 1)
             self.assertNotIn(">OK</span>", rendered)
 
+
+    def test_controller_keeps_accepted_scanner_result_for_configured_surface(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: ACCEPTED
+                      source: accepted-classification-test
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue(output.exists())
+
+            rendered = output.read_text(encoding="utf-8")
+
+            self.assertIn('class="security-confidence confidence-unknown"', rendered)
+            self.assertIn('class="confidence-badge confidence-unknown">UNKNOWN</span>', rendered)
+            self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
+            self.assertIn("Observed Scanner Results: 1", rendered)
+            self.assertIn("Observed Scanner Results UNEXPECTED: 0", rendered)
+            self.assertIn('class="observed-result-cell observed-result-state"><span class="status status-accepted">ACCEPTED</span></td>', rendered)
+            self.assertEqual(rendered.count('class="status status-accepted">ACCEPTED</span>'), 1)
+            self.assertEqual(rendered.count('class="status status-unexpected">UNEXPECTED</span>'), 0)
+            self.assertNotIn(">OK</span>", rendered)
+
+    def test_controller_classifies_accepted_unconfigured_port_as_unexpected(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 22
+                      observed_state: ACCEPTED
+                      source: accepted-classification-test
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue(output.exists())
+
+            rendered = output.read_text(encoding="utf-8")
+
+            self.assertIn('class="security-confidence confidence-low"', rendered)
+            self.assertIn('class="confidence-badge confidence-low">LOW</span>', rendered)
+            self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
+            self.assertIn("Observed Scanner Results: 1", rendered)
+            self.assertIn("Observed Scanner Results UNEXPECTED: 1", rendered)
+            self.assertIn('class="observed-result-cell observed-result-state"><span class="status status-unexpected">UNEXPECTED</span></td>', rendered)
+            self.assertEqual(rendered.count('class="status status-unexpected">UNEXPECTED</span>'), 1)
+            self.assertEqual(rendered.count('class="status status-accepted">ACCEPTED</span>'), 0)
+            self.assertNotIn(">OK</span>", rendered)
+
+    def test_controller_classifies_accepted_unknown_host_as_unexpected(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: unknown-host
+                      host_address: 192.168.250.250
+                      protocol: tcp
+                      port: 443
+                      observed_state: ACCEPTED
+                      source: accepted-classification-test
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue(output.exists())
+
+            rendered = output.read_text(encoding="utf-8")
+
+            self.assertIn('class="security-confidence confidence-low"', rendered)
+            self.assertIn('class="confidence-badge confidence-low">LOW</span>', rendered)
+            self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
+            self.assertIn("Observed Scanner Results: 1", rendered)
+            self.assertIn("Observed Scanner Results UNEXPECTED: 1", rendered)
+            self.assertIn('class="observed-result-cell observed-result-state"><span class="status status-unexpected">UNEXPECTED</span></td>', rendered)
+            self.assertEqual(rendered.count('class="status status-unexpected">UNEXPECTED</span>'), 1)
+            self.assertEqual(rendered.count('class="status status-accepted">ACCEPTED</span>'), 0)
+            self.assertNotIn(">OK</span>", rendered)
+
+
     def test_controller_refuses_invalid_scanner_results_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output = Path(tmpdir) / "index.html"
