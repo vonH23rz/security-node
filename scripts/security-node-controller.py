@@ -552,6 +552,24 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
   <title>Security Node</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    .page-header {{
+      margin-bottom: 1.5rem;
+    }}
+
+    .page-title {{
+      margin-bottom: 0.5rem;
+    }}
+
+    .page-meta {{
+      margin: 0.35rem 0;
+    }}
+
+    .site-name,
+    .verification-level,
+    .validation-notice {{
+      opacity: 0.95;
+    }}
+
     .controller-state-list {{
       margin: 0;
     }}
@@ -654,11 +672,15 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 </head>
 <body>
   <main>
-    <h1>Security Node</h1>
-    <p>Site: {_html.escape(state.site_name)}</p>
-    <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
-    <p>Verification Level: {_html.escape(state.verification_level)}</p>
-    <p>Config schema validation passed before rendering.</p>
+    <header class="page-header">
+      <h1 class="page-title">Security Node</h1>
+      <p class="page-meta site-name">Site: {_html.escape(state.site_name)}</p>
+      <div class="page-meta page-security-confidence">
+        <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
+      </div>
+      <p class="page-meta verification-level">Verification Level: {_html.escape(state.verification_level)}</p>
+      <p class="page-meta validation-notice">Config schema validation passed before rendering.</p>
+    </header>
 
     <section class="controller-state-section" aria-labelledby="controller-state">
       <h2 id="controller-state" class="controller-state-heading">Controller State</h2>
