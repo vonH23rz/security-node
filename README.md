@@ -8,7 +8,18 @@ Security Node is not a SOC, not a hacking toolkit, and not a noisy vulnerability
 
 ## Current status
 
-Early architecture and Controller MVP planning.
+Controller skeleton and static dashboard MVP are in place.
+
+The current Controller can:
+
+- validate the configuration file before rendering;
+- build an expected verification surface from configured hosts and ports;
+- optionally ingest explicit scanner-result evidence from a YAML file;
+- classify non-matching verified evidence as `UNEXPECTED`;
+- compute calm security confidence as `UNKNOWN`, `LOW`, or `MEDIUM`;
+- render a static HTML dashboard with stable CSS hooks for presentation work.
+
+Live scanner execution is not implemented yet. Security Node does not currently run Nmap, Lynis, Trivy, external exposure checks, or router-specific integrations by itself.
 
 ## Core idea
 
