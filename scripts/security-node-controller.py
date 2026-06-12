@@ -320,6 +320,16 @@ def build_expected_surface(
     return tuple(expected)
 
 
+def scanner_result_string_field(item: dict[str, Any], index: int, field: str) -> str:
+    """Return a required non-empty string field from imported scanner evidence."""
+
+    value = item[field]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"scanner result #{index + 1}: {field} must be a non-empty string")
+
+    return value.strip()
+
+
 def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, ...]:
     """Load optional scanner results from a YAML evidence file.
 
@@ -360,6 +370,11 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
                 f"scanner result #{index + 1}: missing required field(s): {', '.join(missing)}"
             )
 
+        host_id = scanner_result_string_field(item, index, "host_id")
+        host_address = scanner_result_string_field(item, index, "host_address")
+        source = scanner_result_string_field(item, index, "source")
+        checked_at = scanner_result_string_field(item, index, "checked_at")
+
         port = item["port"]
         if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
             raise ValueError(f"scanner result #{index + 1}: port must be between 1 and 65535")
@@ -380,13 +395,13 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
 
         results.append(
             ScannerResult(
-                host_id=str(item["host_id"]),
-                host_address=str(item["host_address"]),
+                host_id=host_id,
+                host_address=host_address,
                 protocol=protocol,
                 port=port,
                 observed_state=observed_state,
-                source=str(item["source"]),
-                checked_at=str(item["checked_at"]),
+                source=source,
+                checked_at=checked_at,
             )
         )
 

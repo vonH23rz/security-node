@@ -507,6 +507,190 @@ class ControllerValidationTests(unittest.TestCase):
                 result.stdout,
             )
 
+    def test_controller_refuses_blank_scanner_result_host_id(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: ''
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: imported-test-evidence
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn("scanner result #1: host_id must be a non-empty string", result.stdout)
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
+    def test_controller_refuses_boolean_scanner_result_host_id(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: true
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: imported-test-evidence
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn("scanner result #1: host_id must be a non-empty string", result.stdout)
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
+    def test_controller_refuses_null_scanner_result_source(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source:
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn("scanner result #1: source must be a non-empty string", result.stdout)
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
+    def test_controller_refuses_blank_scanner_result_checked_at(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: imported-test-evidence
+                      checked_at: ''
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(output.exists())
+            self.assertIn("scanner result #1: checked_at must be a non-empty string", result.stdout)
+            self.assertIn(
+                "FAILED: refusing to render dashboard from invalid scanner results",
+                result.stdout,
+            )
+
     def test_controller_refuses_to_render_when_config_is_invalid(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             config = Path(tmpdir) / "invalid.yaml"
