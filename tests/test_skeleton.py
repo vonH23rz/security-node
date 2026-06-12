@@ -18,6 +18,7 @@ class SkeletonTests(unittest.TestCase):
             "scripts/security-node-controller.py",
             "scripts/validate-config.py",
             "tests/test_config_validation.py",
+            "tests/test_controller_validation.py",
             "tests/test_skeleton.py",
         ]
 
