@@ -510,19 +510,24 @@ def render_observed_result_rows(state: SecurityNodeState) -> str:
     """
 
     if not state.observed_results:
-        return "        <tr><td colspan=\"7\">No scanner results collected yet.</td></tr>"
+        return (
+            "        <tr class=\"observed-result-row observed-result-empty\">"
+            "<td class=\"observed-result-cell observed-result-empty-cell\" colspan=\"7\">"
+            "No scanner results collected yet."
+            "</td></tr>"
+        )
 
     rows = []
     for item in state.observed_results:
         rows.append(
-            "        <tr>"
-            f"<td>{_html.escape(item.host_id)}</td>"
-            f"<td>{_html.escape(item.host_address)}</td>"
-            f"<td>{_html.escape(item.protocol.upper())}</td>"
-            f"<td>{item.port}</td>"
-            f"<td>{render_status_badge(item.observed_state)}</td>"
-            f"<td>{_html.escape(item.source)}</td>"
-            f"<td>{_html.escape(item.checked_at)}</td>"
+            "        <tr class=\"observed-result-row\">"
+            f"<td class=\"observed-result-cell observed-result-host-id\">{_html.escape(item.host_id)}</td>"
+            f"<td class=\"observed-result-cell observed-result-address\">{_html.escape(item.host_address)}</td>"
+            f"<td class=\"observed-result-cell observed-result-protocol\">{_html.escape(item.protocol.upper())}</td>"
+            f"<td class=\"observed-result-cell observed-result-port\">{item.port}</td>"
+            f"<td class=\"observed-result-cell observed-result-state\">{render_status_badge(item.observed_state)}</td>"
+            f"<td class=\"observed-result-cell observed-result-source\">{_html.escape(item.source)}</td>"
+            f"<td class=\"observed-result-cell observed-result-checked-at\">{_html.escape(item.checked_at)}</td>"
             "</tr>"
         )
 
@@ -565,6 +570,15 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .expected-surface-cell {{
+      vertical-align: top;
+    }}
+
+    .observed-results-table {{
+      border-collapse: collapse;
+      width: 100%;
+    }}
+
+    .observed-result-cell {{
       vertical-align: top;
     }}
 
@@ -685,7 +699,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     <section aria-labelledby="observed-scanner-results">
       <h2 id="observed-scanner-results">Observed Scanner Results</h2>
       <p>Scanner result model is prepared, but live scanner logic is not implemented yet.</p>
-      <table>
+      <table class="observed-results-table">
         <thead>
           <tr>
             <th>Host ID</th>
