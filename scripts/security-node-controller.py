@@ -381,6 +381,7 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
         "source",
         "checked_at",
     }
+    seen_result_keys: set[tuple[str, str, str, int]] = set()
 
     for index, item in enumerate(loaded):
         if not isinstance(item, dict):
@@ -414,6 +415,13 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
             raise ValueError(
                 f"scanner result #{index + 1}: observed_state must be one of: {allowed}"
             )
+
+        result_key = expected_surface_key(host_id, host_address, protocol, port)
+        if result_key in seen_result_keys:
+            raise ValueError(
+                f"scanner result #{index + 1}: duplicate scanner result for {host_id} {host_address} {protocol}/{port}"
+            )
+        seen_result_keys.add(result_key)
 
         results.append(
             ScannerResult(
