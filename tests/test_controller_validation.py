@@ -53,6 +53,7 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn("Accepted Risks: 0", rendered)
             self.assertIn("External Exposure Expectations: 0", rendered)
             self.assertIn("Expected Verification Surface Items: 2", rendered)
+            self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Expected Verification Surface", rendered)
             self.assertIn("Configured host ports that should be checked by future scanner logic.", rendered)
             self.assertIn("Router", rendered)
@@ -60,6 +61,9 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn("TCP", rendered)
             self.assertIn("<td>80</td>", rendered)
             self.assertIn("<td>443</td>", rendered)
+            self.assertIn("<th>Status</th>", rendered)
+            self.assertEqual(rendered.count("<td>NOT VERIFIED</td>"), 2)
+            self.assertNotIn("<td>OK</td>", rendered)
             self.assertIn("summary: 0 error(s), 0 warning(s)", result.stdout)
             self.assertIn("Wrote dashboard from validated state model", result.stdout)
 

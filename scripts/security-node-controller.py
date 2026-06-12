@@ -32,6 +32,7 @@ class ExpectedPort:
     network_id: str
     protocol: str
     port: int
+    verification_status: str
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,7 @@ class SecurityNodeState:
     external_exposure_expected_count: int
     expected_surface: tuple[ExpectedPort, ...]
     expected_surface_count: int
+    expected_surface_not_verified_count: int
     verification_level: str
     security_confidence: str
 
@@ -122,6 +124,7 @@ def build_expected_surface(config_data: dict[str, Any]) -> tuple[ExpectedPort, .
                     network_id=network_id,
                     protocol="tcp",
                     port=int(port),
+                    verification_status="NOT VERIFIED",
                 )
             )
 
@@ -157,6 +160,9 @@ def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
         external_exposure_expected_count=len(external_exposure.get("expected", [])),
         expected_surface=expected_surface,
         expected_surface_count=len(expected_surface),
+        expected_surface_not_verified_count=sum(
+            1 for item in expected_surface if item.verification_status == "NOT VERIFIED"
+        ),
         verification_level="Controller only",
         security_confidence="UNKNOWN",
     )
@@ -177,6 +183,7 @@ def render_expected_surface_rows(state: SecurityNodeState) -> str:
             f"<td>{_html.escape(item.network_id)}</td>"
             f"<td>{_html.escape(item.protocol.upper())}</td>"
             f"<td>{item.port}</td>"
+            f"<td>{_html.escape(item.verification_status)}</td>"
             "</tr>"
         )
 
@@ -228,6 +235,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         <li>Accepted Risks: {state.accepted_risk_count}</li>
         <li>External Exposure Expectations: {state.external_exposure_expected_count}</li>
         <li>Expected Verification Surface Items: {state.expected_surface_count}</li>
+        <li>Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</li>
       </ul>
     </section>
 
@@ -242,6 +250,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
             <th>Network</th>
             <th>Protocol</th>
             <th>Port</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
