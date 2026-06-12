@@ -552,6 +552,14 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
   <title>Security Node</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    .page-body {{
+      display: block;
+    }}
+
+    .page-main {{
+      display: block;
+    }}
+
     .page-header {{
       margin-bottom: 1.5rem;
     }}
@@ -702,8 +710,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
   </style>
 </head>
-<body>
-  <main>
+<body class="page-body">
+  <main class="page-main">
     <header class="page-header">
       <h1 class="page-title">Security Node</h1>
       <p class="page-meta site-name">Site: {_html.escape(state.site_name)}</p>
