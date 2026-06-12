@@ -416,6 +416,61 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn("networks: must contain at least one network", result.stdout)
             self.assertIn("controller.network: references unknown network", result.stdout)
 
+    def test_controller_sets_medium_confidence_for_fully_verified_expected_surface(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+            output = Path(tmpdir) / "dashboard.html"
+
+            scanner_results.write_text(
+                """\
+- host_id: router
+  host_address: 192.168.1.1
+  protocol: tcp
+  port: 80
+  observed_state: VERIFIED
+  source: imported-full-surface-test-evidence
+  checked_at: "2026-06-12T10:00:00+00:00"
+- host_id: router
+  host_address: 192.168.1.1
+  protocol: tcp
+  port: 443
+  observed_state: VERIFIED
+  source: imported-full-surface-test-evidence
+  checked_at: "2026-06-12T10:00:00+00:00"
+""",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            rendered = output.read_text(encoding="utf-8")
+            self.assertIn("Expected Surface NOT VERIFIED: 0", rendered)
+            self.assertIn("Observed Scanner Results: 2", rendered)
+            self.assertIn("Observed Scanner Results UNEXPECTED: 0", rendered)
+            self.assertIn("Security Confidence: MEDIUM", rendered)
+            self.assertIn("imported-full-surface-test-evidence", rendered)
+            self.assertEqual(rendered.count('class="status status-verified">VERIFIED</span>'), 4)
+            self.assertNotIn('class="status status-not-verified">NOT VERIFIED</span>', rendered)
+            self.assertNotIn('class="status status-unexpected">UNEXPECTED</span>', rendered)
+            self.assertNotIn(">OK</span>", rendered)
+
+
 
 if __name__ == "__main__":
     unittest.main()
