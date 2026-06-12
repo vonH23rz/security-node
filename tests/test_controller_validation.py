@@ -170,8 +170,57 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Observed Scanner Results: 1", rendered)
             self.assertIn("imported-nonmatching-test-evidence", rendered)
-            self.assertEqual(rendered.count('class="status status-verified">VERIFIED</span>'), 1)
+            self.assertEqual(rendered.count('class="status status-unexpected">UNEXPECTED</span>'), 1)
+            self.assertEqual(rendered.count('class="status status-verified">VERIFIED</span>'), 0)
             self.assertEqual(rendered.count('class="status status-not-verified">NOT VERIFIED</span>'), 2)
+            self.assertNotIn(">OK</span>", rendered)
+
+    def test_controller_keeps_matching_verified_evidence_verified(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "index.html"
+            scanner_results = Path(tmpdir) / "scanner-results.yaml"
+
+            scanner_results.write_text(
+                textwrap.dedent(
+                    """
+                    - host_id: router
+                      host_address: 192.168.1.1
+                      protocol: tcp
+                      port: 443
+                      observed_state: VERIFIED
+                      source: imported-matching-test-evidence
+                      checked_at: "2026-06-12T10:00:00+00:00"
+                    """
+                ).strip()
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results),
+                    "--output",
+                    str(output),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            rendered = output.read_text(encoding="utf-8")
+            self.assertIn("Expected Surface NOT VERIFIED: 1", rendered)
+            self.assertIn("Observed Scanner Results: 1", rendered)
+            self.assertIn("imported-matching-test-evidence", rendered)
+            self.assertEqual(rendered.count('class="status status-verified">VERIFIED</span>'), 2)
+            self.assertEqual(rendered.count('class="status status-unexpected">UNEXPECTED</span>'), 0)
+            self.assertEqual(rendered.count('class="status status-not-verified">NOT VERIFIED</span>'), 1)
             self.assertNotIn(">OK</span>", rendered)
 
     def test_controller_refuses_invalid_scanner_results_file(self):

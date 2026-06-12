@@ -174,6 +174,71 @@ def verified_expected_surface_keys(
     }
 
 
+def configured_expected_surface_keys(
+    config_data: dict[str, Any],
+) -> set[tuple[str, str, str, int]]:
+    """Return configured expected-surface keys without using evidence."""
+
+    keys: set[tuple[str, str, str, int]] = set()
+
+    for host in config_data.get("hosts", []):
+        host_id = str(host["id"])
+        host_address = str(host["address"])
+
+        for port in host.get("expected_ports", []):
+            keys.add(
+                expected_surface_key(
+                    host_id,
+                    host_address,
+                    "tcp",
+                    int(port),
+                )
+            )
+
+    return keys
+
+
+def classify_observed_results(
+    config_data: dict[str, Any],
+    observed_results: tuple[ScannerResult, ...],
+) -> tuple[ScannerResult, ...]:
+    """Classify observed evidence against the configured expected surface.
+
+    VERIFIED evidence for a non-configured surface item is unexpected. Other
+    observed states keep their imported value until later policy slices define
+    more nuanced handling.
+    """
+
+    expected_keys = configured_expected_surface_keys(config_data)
+    classified: list[ScannerResult] = []
+
+    for result in observed_results:
+        result_key = expected_surface_key(
+            result.host_id,
+            result.host_address,
+            result.protocol,
+            result.port,
+        )
+        observed_state = result.observed_state
+
+        if observed_state == "VERIFIED" and result_key not in expected_keys:
+            observed_state = "UNEXPECTED"
+
+        classified.append(
+            ScannerResult(
+                host_id=result.host_id,
+                host_address=result.host_address,
+                protocol=result.protocol,
+                port=result.port,
+                observed_state=observed_state,
+                source=result.source,
+                checked_at=result.checked_at,
+            )
+        )
+
+    return tuple(classified)
+
+
 def build_expected_surface(
     config_data: dict[str, Any],
     observed_results: tuple[ScannerResult, ...] = (),
@@ -306,7 +371,11 @@ def build_state_model(
     site = config_data["site"]
     controller = config_data["controller"]
     external_exposure = config_data["external_exposure"]
-    expected_surface = build_expected_surface(config_data, observed_results=observed_results)
+    classified_observed_results = classify_observed_results(config_data, observed_results)
+    expected_surface = build_expected_surface(
+        config_data,
+        observed_results=classified_observed_results,
+    )
 
     controller_id = str(controller["id"])
     controller_display_name = str(controller.get("display_name") or controller_id)
@@ -328,8 +397,8 @@ def build_state_model(
         expected_surface_not_verified_count=sum(
             1 for item in expected_surface if item.verification_status == "NOT VERIFIED"
         ),
-        observed_results=observed_results,
-        observed_result_count=len(observed_results),
+        observed_results=classified_observed_results,
+        observed_result_count=len(classified_observed_results),
         verification_level="Controller only",
         security_confidence="UNKNOWN",
     )
