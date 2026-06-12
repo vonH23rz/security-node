@@ -372,6 +372,8 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
 
         host_id = scanner_result_string_field(item, index, "host_id")
         host_address = scanner_result_string_field(item, index, "host_address")
+        protocol = scanner_result_string_field(item, index, "protocol").lower()
+        observed_state = scanner_result_string_field(item, index, "observed_state").upper()
         source = scanner_result_string_field(item, index, "source")
         checked_at = scanner_result_string_field(item, index, "checked_at")
 
@@ -379,14 +381,12 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
         if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
             raise ValueError(f"scanner result #{index + 1}: port must be between 1 and 65535")
 
-        protocol = str(item["protocol"]).strip().lower()
         if protocol not in ALLOWED_SCANNER_RESULT_PROTOCOLS:
             allowed = ", ".join(sorted(ALLOWED_SCANNER_RESULT_PROTOCOLS))
             raise ValueError(
                 f"scanner result #{index + 1}: protocol must be one of: {allowed}"
             )
 
-        observed_state = str(item["observed_state"]).strip().upper()
         if observed_state not in ALLOWED_SCANNER_RESULT_STATES:
             allowed = ", ".join(sorted(ALLOWED_SCANNER_RESULT_STATES))
             raise ValueError(
