@@ -199,16 +199,25 @@ def configured_expected_surface_keys(
     return keys
 
 
-def determine_security_confidence(observed_result_unexpected_count: int) -> str:
-    """Return calm confidence from current observed posture.
+def determine_security_confidence(
+    expected_surface_count: int,
+    expected_surface_not_verified_count: int,
+    observed_result_unexpected_count: int,
+) -> str:
+    """Return calm confidence from current observed and expected posture.
 
     Unexpected observed exposure is evidence that the configured posture and
-    observed posture do not match. Without unexpected evidence, confidence stays
-    UNKNOWN until later slices can prove a fully verified posture.
+    observed posture do not match, so it takes priority and lowers confidence.
+    A fully verified expected surface without unexpected observations earns
+    MEDIUM confidence because this is still controller-side imported evidence,
+    not an independent external proof.
     """
 
     if observed_result_unexpected_count > 0:
         return "LOW"
+
+    if expected_surface_count > 0 and expected_surface_not_verified_count == 0:
+        return "MEDIUM"
 
     return "UNKNOWN"
 
@@ -400,6 +409,11 @@ def build_state_model(
     controller_display_name = str(controller.get("display_name") or controller_id)
     capabilities = tuple(str(capability) for capability in controller.get("capabilities", []))
 
+    expected_surface_count = len(expected_surface)
+    expected_surface_not_verified_count = sum(
+        1 for item in expected_surface if item.verification_status == "NOT VERIFIED"
+    )
+
     return SecurityNodeState(
         site_name=str(site["name"]),
         controller_id=controller_id,
@@ -412,16 +426,16 @@ def build_state_model(
         accepted_risk_count=len(config_data.get("accepted_risks", [])),
         external_exposure_expected_count=len(external_exposure.get("expected", [])),
         expected_surface=expected_surface,
-        expected_surface_count=len(expected_surface),
-        expected_surface_not_verified_count=sum(
-            1 for item in expected_surface if item.verification_status == "NOT VERIFIED"
-        ),
+        expected_surface_count=expected_surface_count,
+        expected_surface_not_verified_count=expected_surface_not_verified_count,
         observed_results=classified_observed_results,
         observed_result_count=len(classified_observed_results),
         observed_result_unexpected_count=observed_result_unexpected_count,
         verification_level="Controller only",
         security_confidence=determine_security_confidence(
-            observed_result_unexpected_count
+            expected_surface_count,
+            expected_surface_not_verified_count,
+            observed_result_unexpected_count,
         ),
     )
 
