@@ -23,6 +23,18 @@ import yaml
 
 
 @dataclass(frozen=True)
+class ExpectedPort:
+    """One expected host/port exposure from the validated config."""
+
+    host_id: str
+    host_display_name: str
+    host_address: str
+    network_id: str
+    protocol: str
+    port: int
+
+
+@dataclass(frozen=True)
 class SecurityNodeState:
     """Normalized Controller state derived from a validated config file."""
 
@@ -36,6 +48,8 @@ class SecurityNodeState:
     probe_count: int
     accepted_risk_count: int
     external_exposure_expected_count: int
+    expected_surface: tuple[ExpectedPort, ...]
+    expected_surface_count: int
     verification_level: str
     security_confidence: str
 
@@ -84,6 +98,36 @@ def load_validated_config(config: Path) -> dict[str, Any]:
     return loaded
 
 
+def build_expected_surface(config_data: dict[str, Any]) -> tuple[ExpectedPort, ...]:
+    """Build the expected host/port surface from validated host definitions.
+
+    This is not scan output. It is the configured expectation that future
+    scanner results will be compared against.
+    """
+
+    expected: list[ExpectedPort] = []
+
+    for host in config_data.get("hosts", []):
+        host_id = str(host["id"])
+        host_display_name = str(host.get("display_name") or host_id)
+        host_address = str(host["address"])
+        network_id = str(host["network"])
+
+        for port in host.get("expected_ports", []):
+            expected.append(
+                ExpectedPort(
+                    host_id=host_id,
+                    host_display_name=host_display_name,
+                    host_address=host_address,
+                    network_id=network_id,
+                    protocol="tcp",
+                    port=int(port),
+                )
+            )
+
+    return tuple(expected)
+
+
 def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
     """Build the normalized Controller state model.
 
@@ -94,6 +138,7 @@ def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
     site = config_data["site"]
     controller = config_data["controller"]
     external_exposure = config_data["external_exposure"]
+    expected_surface = build_expected_surface(config_data)
 
     controller_id = str(controller["id"])
     controller_display_name = str(controller.get("display_name") or controller_id)
@@ -110,9 +155,32 @@ def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
         probe_count=len(config_data.get("probes", [])),
         accepted_risk_count=len(config_data.get("accepted_risks", [])),
         external_exposure_expected_count=len(external_exposure.get("expected", [])),
+        expected_surface=expected_surface,
+        expected_surface_count=len(expected_surface),
         verification_level="Controller only",
         security_confidence="UNKNOWN",
     )
+
+
+def render_expected_surface_rows(state: SecurityNodeState) -> str:
+    """Render expected verification surface rows."""
+
+    if not state.expected_surface:
+        return "        <tr><td colspan=\"5\">No expected host ports configured.</td></tr>"
+
+    rows = []
+    for item in state.expected_surface:
+        rows.append(
+            "        <tr>"
+            f"<td>{_html.escape(item.host_display_name)}</td>"
+            f"<td>{_html.escape(item.host_address)}</td>"
+            f"<td>{_html.escape(item.network_id)}</td>"
+            f"<td>{_html.escape(item.protocol.upper())}</td>"
+            f"<td>{item.port}</td>"
+            "</tr>"
+        )
+
+    return "\n".join(rows)
 
 
 def render_dashboard(output: Path, state: SecurityNodeState) -> None:
@@ -120,6 +188,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     now = _dt.datetime.now(_dt.timezone.utc).isoformat()
     capabilities = ", ".join(state.controller_capabilities) if state.controller_capabilities else "none"
+    expected_surface_rows = render_expected_surface_rows(state)
 
     html = f"""<!doctype html>
 <html lang="en">
@@ -158,7 +227,27 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         <li>Probes: {state.probe_count}</li>
         <li>Accepted Risks: {state.accepted_risk_count}</li>
         <li>External Exposure Expectations: {state.external_exposure_expected_count}</li>
+        <li>Expected Verification Surface Items: {state.expected_surface_count}</li>
       </ul>
+    </section>
+
+    <section aria-labelledby="expected-verification-surface">
+      <h2 id="expected-verification-surface">Expected Verification Surface</h2>
+      <p>Configured host ports that should be checked by future scanner logic.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Host</th>
+            <th>Address</th>
+            <th>Network</th>
+            <th>Protocol</th>
+            <th>Port</th>
+          </tr>
+        </thead>
+        <tbody>
+{expected_surface_rows}
+        </tbody>
+      </table>
     </section>
 
     <p>Scanner logic is not implemented yet.</p>
