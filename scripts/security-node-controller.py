@@ -199,6 +199,20 @@ def configured_expected_surface_keys(
     return keys
 
 
+def determine_security_confidence(observed_result_unexpected_count: int) -> str:
+    """Return calm confidence from current observed posture.
+
+    Unexpected observed exposure is evidence that the configured posture and
+    observed posture do not match. Without unexpected evidence, confidence stays
+    UNKNOWN until later slices can prove a fully verified posture.
+    """
+
+    if observed_result_unexpected_count > 0:
+        return "LOW"
+
+    return "UNKNOWN"
+
+
 def classify_observed_results(
     config_data: dict[str, Any],
     observed_results: tuple[ScannerResult, ...],
@@ -377,6 +391,10 @@ def build_state_model(
         config_data,
         observed_results=classified_observed_results,
     )
+    observed_result_unexpected_count = sum(
+        1 for item in classified_observed_results if item.observed_state == "UNEXPECTED"
+    )
+
 
     controller_id = str(controller["id"])
     controller_display_name = str(controller.get("display_name") or controller_id)
@@ -400,11 +418,11 @@ def build_state_model(
         ),
         observed_results=classified_observed_results,
         observed_result_count=len(classified_observed_results),
-        observed_result_unexpected_count=sum(
-            1 for item in classified_observed_results if item.observed_state == "UNEXPECTED"
-        ),
+        observed_result_unexpected_count=observed_result_unexpected_count,
         verification_level="Controller only",
-        security_confidence="UNKNOWN",
+        security_confidence=determine_security_confidence(
+            observed_result_unexpected_count
+        ),
     )
 
 
