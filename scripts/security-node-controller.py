@@ -22,6 +22,21 @@ from typing import Any
 import yaml
 
 
+STATUS_CLASS_BY_NAME = {
+    "NOT VERIFIED": "status-not-verified",
+    "VERIFIED": "status-verified",
+    "UNEXPECTED": "status-unexpected",
+    "ACCEPTED": "status-accepted",
+    "UNKNOWN": "status-unknown",
+}
+
+
+def status_class(status: str) -> str:
+    """Return the calm rendering class for a known status value."""
+
+    return STATUS_CLASS_BY_NAME.get(status, "status-unknown")
+
+
 @dataclass(frozen=True)
 class ExpectedPort:
     """One expected host/port exposure from the validated config."""
@@ -168,11 +183,23 @@ def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
     )
 
 
+def render_status_badge(status: str) -> str:
+    """Render a calm status badge.
+
+    The status text stays explicit and human-readable. The class gives the
+    future GUI a stable hook for color and layout without changing semantics.
+    """
+
+    escaped_status = _html.escape(status)
+    escaped_class = _html.escape(status_class(status))
+    return f'<span class="status {escaped_class}">{escaped_status}</span>'
+
+
 def render_expected_surface_rows(state: SecurityNodeState) -> str:
     """Render expected verification surface rows."""
 
     if not state.expected_surface:
-        return "        <tr><td colspan=\"5\">No expected host ports configured.</td></tr>"
+        return "        <tr><td colspan=\"6\">No expected host ports configured.</td></tr>"
 
     rows = []
     for item in state.expected_surface:
@@ -183,7 +210,7 @@ def render_expected_surface_rows(state: SecurityNodeState) -> str:
             f"<td>{_html.escape(item.network_id)}</td>"
             f"<td>{_html.escape(item.protocol.upper())}</td>"
             f"<td>{item.port}</td>"
-            f"<td>{_html.escape(item.verification_status)}</td>"
+            f"<td>{render_status_badge(item.verification_status)}</td>"
             "</tr>"
         )
 
@@ -203,6 +230,32 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
   <meta charset="utf-8">
   <title>Security Node</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    .status {{
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+      white-space: nowrap;
+    }}
+
+    .status-not-verified,
+    .status-unknown {{
+      opacity: 0.8;
+    }}
+
+    .status-verified,
+    .status-accepted {{
+      opacity: 1;
+    }}
+
+    .status-unexpected {{
+      font-weight: 800;
+    }}
+  </style>
 </head>
 <body>
   <main>
