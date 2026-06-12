@@ -787,15 +787,26 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     .status-not-verified,
     .status-unknown {{
-      opacity: 0.8;
+      background: #f3f4f6;
+      color: #6b7280;
+      opacity: 1;
     }}
 
-    .status-verified,
+    .status-verified {{
+      background: #dcfce7;
+      color: #15803d;
+      opacity: 1;
+    }}
+
     .status-accepted {{
+      background: #dbeafe;
+      color: #2563eb;
       opacity: 1;
     }}
 
     .status-unexpected {{
+      background: #fee2e2;
+      color: #b91c1c;
       font-weight: 800;
     }}
 
@@ -819,14 +830,20 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .confidence-unknown {{
-      opacity: 0.8;
+      background: #f3f4f6;
+      color: #6b7280;
+      opacity: 1;
     }}
 
     .confidence-low {{
+      background: #fee2e2;
+      color: #b91c1c;
       font-weight: 800;
     }}
 
     .confidence-medium {{
+      background: #ccfbf1;
+      color: #0f766e;
       opacity: 1;
     }}
   </style>
