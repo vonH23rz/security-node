@@ -1,14 +1,49 @@
 #!/usr/bin/env python3
-"""Security Node Controller placeholder.
+"""Security Node Controller.
 
-This is intentionally minimal. Real scanner logic is not implemented yet.
+The Controller validates configuration before rendering any dashboard output.
+Real scanner logic is not implemented yet.
 """
 
 from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import importlib.util
 from pathlib import Path
+from types import ModuleType
+
+
+def load_validator_module() -> ModuleType:
+    """Load the validator script despite its CLI-friendly hyphenated filename."""
+
+    validator_path = Path(__file__).with_name("validate-config.py")
+    spec = importlib.util.spec_from_file_location("security_node_config_validator", validator_path)
+
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load validator module from {validator_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def print_validation_report(config: Path, report: object) -> None:
+    """Print validator output in the same clear style as the standalone validator."""
+
+    errors = getattr(report, "errors", [])
+    warnings = getattr(report, "warnings", [])
+
+    print("Security Node Controller")
+    print(f"config={config}")
+
+    for warning in warnings:
+        print(f"WARNING: {warning}")
+
+    for error in errors:
+        print(f"ERROR: {error}")
+
+    print(f"summary: {len(errors)} error(s), {len(warnings)} warning(s)")
 
 
 def render_placeholder(output: Path) -> None:
@@ -25,6 +60,7 @@ def render_placeholder(output: Path) -> None:
     <h1>Security Node</h1>
     <p>Security Confidence: UNKNOWN</p>
     <p>Controller skeleton is installed. Scanner logic is not implemented yet.</p>
+    <p>Config schema validation passed before rendering.</p>
     <p>Generated: {now}</p>
   </main>
 </body>
@@ -43,9 +79,15 @@ def main() -> int:
     config = Path(args.config)
     output = Path(args.output)
 
-    if not config.exists():
-        raise SystemExit(f"Config file not found: {config}")
+    validator = load_validator_module()
+    report = validator.validate_config(config)
 
+    if not report.ok:
+        print_validation_report(config, report)
+        print("FAILED: refusing to render dashboard from invalid config")
+        return 1
+
+    print_validation_report(config, report)
     render_placeholder(output)
     print(f"Wrote placeholder dashboard: {output}")
     return 0
