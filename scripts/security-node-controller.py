@@ -51,6 +51,23 @@ class ExpectedPort:
 
 
 @dataclass(frozen=True)
+class ScannerResult:
+    """One observed scanner result.
+
+    This is only the model shape for future scanner output. The Controller does
+    not collect live scanner results yet.
+    """
+
+    host_id: str
+    host_address: str
+    protocol: str
+    port: int
+    observed_state: str
+    source: str
+    checked_at: str
+
+
+@dataclass(frozen=True)
 class SecurityNodeState:
     """Normalized Controller state derived from a validated config file."""
 
@@ -67,6 +84,8 @@ class SecurityNodeState:
     expected_surface: tuple[ExpectedPort, ...]
     expected_surface_count: int
     expected_surface_not_verified_count: int
+    observed_results: tuple[ScannerResult, ...]
+    observed_result_count: int
     verification_level: str
     security_confidence: str
 
@@ -178,6 +197,8 @@ def build_state_model(config_data: dict[str, Any]) -> SecurityNodeState:
         expected_surface_not_verified_count=sum(
             1 for item in expected_surface if item.verification_status == "NOT VERIFIED"
         ),
+        observed_results=(),
+        observed_result_count=0,
         verification_level="Controller only",
         security_confidence="UNKNOWN",
     )
@@ -217,12 +238,39 @@ def render_expected_surface_rows(state: SecurityNodeState) -> str:
     return "\n".join(rows)
 
 
+def render_observed_result_rows(state: SecurityNodeState) -> str:
+    """Render observed scanner result rows.
+
+    No rows are produced until scanner logic exists and provides evidence.
+    """
+
+    if not state.observed_results:
+        return "        <tr><td colspan=\"7\">No scanner results collected yet.</td></tr>"
+
+    rows = []
+    for item in state.observed_results:
+        rows.append(
+            "        <tr>"
+            f"<td>{_html.escape(item.host_id)}</td>"
+            f"<td>{_html.escape(item.host_address)}</td>"
+            f"<td>{_html.escape(item.protocol.upper())}</td>"
+            f"<td>{item.port}</td>"
+            f"<td>{render_status_badge(item.observed_state)}</td>"
+            f"<td>{_html.escape(item.source)}</td>"
+            f"<td>{_html.escape(item.checked_at)}</td>"
+            "</tr>"
+        )
+
+    return "\n".join(rows)
+
+
 def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     """Render the current dashboard from normalized Controller state."""
 
     now = _dt.datetime.now(_dt.timezone.utc).isoformat()
     capabilities = ", ".join(state.controller_capabilities) if state.controller_capabilities else "none"
     expected_surface_rows = render_expected_surface_rows(state)
+    observed_result_rows = render_observed_result_rows(state)
 
     html = f"""<!doctype html>
 <html lang="en">
@@ -289,6 +337,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         <li>External Exposure Expectations: {state.external_exposure_expected_count}</li>
         <li>Expected Verification Surface Items: {state.expected_surface_count}</li>
         <li>Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</li>
+        <li>Observed Scanner Results: {state.observed_result_count}</li>
       </ul>
     </section>
 
@@ -308,6 +357,27 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         </thead>
         <tbody>
 {expected_surface_rows}
+        </tbody>
+      </table>
+    </section>
+
+    <section aria-labelledby="observed-scanner-results">
+      <h2 id="observed-scanner-results">Observed Scanner Results</h2>
+      <p>Scanner result model is prepared, but live scanner logic is not implemented yet.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Host ID</th>
+            <th>Address</th>
+            <th>Protocol</th>
+            <th>Port</th>
+            <th>Observed State</th>
+            <th>Source</th>
+            <th>Checked At</th>
+          </tr>
+        </thead>
+        <tbody>
+{observed_result_rows}
         </tbody>
       </table>
     </section>
