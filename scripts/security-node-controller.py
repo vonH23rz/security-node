@@ -98,6 +98,7 @@ class SecurityNodeState:
     expected_surface_not_verified_count: int
     observed_results: tuple[ScannerResult, ...]
     observed_result_count: int
+    observed_result_unexpected_count: int
     verification_level: str
     security_confidence: str
 
@@ -399,6 +400,9 @@ def build_state_model(
         ),
         observed_results=classified_observed_results,
         observed_result_count=len(classified_observed_results),
+        observed_result_unexpected_count=sum(
+            1 for item in classified_observed_results if item.observed_state == "UNEXPECTED"
+        ),
         verification_level="Controller only",
         security_confidence="UNKNOWN",
     )
@@ -538,6 +542,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         <li>Expected Verification Surface Items: {state.expected_surface_count}</li>
         <li>Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</li>
         <li>Observed Scanner Results: {state.observed_result_count}</li>
+        <li>Observed Scanner Results UNEXPECTED: {state.observed_result_unexpected_count}</li>
       </ul>
     </section>
 
