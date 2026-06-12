@@ -452,6 +452,18 @@ def build_state_model(
     )
 
 
+def render_confidence_badge(confidence: str) -> str:
+    """Render a calm confidence badge.
+
+    The value stays explicit and human-readable. The class gives the future GUI
+    a stable hook for styling confidence separately from scanner/status badges.
+    """
+
+    escaped_confidence = _html.escape(confidence)
+    escaped_class = _html.escape(confidence_class(confidence))
+    return f'<span class="confidence-badge {escaped_class}">{escaped_confidence}</span>'
+
+
 def render_status_badge(status: str) -> str:
     """Render a calm status badge.
 
@@ -520,6 +532,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     expected_surface_rows = render_expected_surface_rows(state)
     observed_result_rows = render_observed_result_rows(state)
     security_confidence_class = _html.escape(confidence_class(state.security_confidence))
+    security_confidence_text = _html.escape(state.security_confidence)
+    security_confidence_badge = render_confidence_badge(state.security_confidence)
 
     html = f"""<!doctype html>
 <html lang="en">
@@ -557,6 +571,21 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       font-weight: 700;
     }}
 
+    .confidence-label {{
+      margin-right: 0.35rem;
+    }}
+
+    .confidence-badge {{
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      display: inline-block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+      white-space: nowrap;
+    }}
+
     .confidence-unknown {{
       opacity: 0.8;
     }}
@@ -574,7 +603,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
   <main>
     <h1>Security Node</h1>
     <p>Site: {_html.escape(state.site_name)}</p>
-    <p class="security-confidence {security_confidence_class}">Security Confidence: {_html.escape(state.security_confidence)}</p>
+    <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
     <p>Verification Level: {_html.escape(state.verification_level)}</p>
     <p>Config schema validation passed before rendering.</p>
 
