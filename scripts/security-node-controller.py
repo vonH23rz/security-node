@@ -552,6 +552,19 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
   <title>Security Node</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    .controller-state-list {{
+      margin: 0;
+    }}
+
+    .controller-state-term {{
+      font-weight: 700;
+    }}
+
+    .controller-state-value {{
+      margin-left: 0;
+      margin-bottom: 0.5rem;
+    }}
+
     .posture-summary {{
       padding-left: 1.25rem;
     }}
@@ -647,17 +660,17 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     <p>Verification Level: {_html.escape(state.verification_level)}</p>
     <p>Config schema validation passed before rendering.</p>
 
-    <section aria-labelledby="controller-state">
-      <h2 id="controller-state">Controller State</h2>
-      <dl>
-        <dt>Controller ID</dt>
-        <dd>{_html.escape(state.controller_id)}</dd>
-        <dt>Controller Display Name</dt>
-        <dd>{_html.escape(state.controller_display_name)}</dd>
-        <dt>Controller Network</dt>
-        <dd>{_html.escape(state.controller_network)}</dd>
-        <dt>Controller Capabilities</dt>
-        <dd>{_html.escape(capabilities)}</dd>
+    <section class="controller-state-section" aria-labelledby="controller-state">
+      <h2 id="controller-state" class="controller-state-heading">Controller State</h2>
+      <dl class="controller-state-list">
+        <dt class="controller-state-term controller-state-controller-id-label">Controller ID</dt>
+        <dd class="controller-state-value controller-state-controller-id">{_html.escape(state.controller_id)}</dd>
+        <dt class="controller-state-term controller-state-display-name-label">Controller Display Name</dt>
+        <dd class="controller-state-value controller-state-display-name">{_html.escape(state.controller_display_name)}</dd>
+        <dt class="controller-state-term controller-state-network-label">Controller Network</dt>
+        <dd class="controller-state-value controller-state-network">{_html.escape(state.controller_network)}</dd>
+        <dt class="controller-state-term controller-state-capabilities-label">Controller Capabilities</dt>
+        <dd class="controller-state-value controller-state-capabilities">{_html.escape(capabilities)}</dd>
       </dl>
     </section>
 
