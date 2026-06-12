@@ -30,6 +30,18 @@ STATUS_CLASS_BY_NAME = {
     "UNKNOWN": "status-unknown",
 }
 
+ALLOWED_SCANNER_RESULT_STATES = {
+    "VERIFIED",
+    "UNEXPECTED",
+    "ACCEPTED",
+    "UNKNOWN",
+}
+
+ALLOWED_SCANNER_RESULT_PROTOCOLS = {
+    "tcp",
+    "udp",
+}
+
 
 def status_class(status: str) -> str:
     """Return the calm rendering class for a known status value."""
@@ -209,13 +221,27 @@ def load_scanner_results(scanner_results: Path | None) -> tuple[ScannerResult, .
         if not isinstance(port, int) or isinstance(port, bool) or not 1 <= port <= 65535:
             raise ValueError(f"scanner result #{index + 1}: port must be between 1 and 65535")
 
+        protocol = str(item["protocol"]).strip().lower()
+        if protocol not in ALLOWED_SCANNER_RESULT_PROTOCOLS:
+            allowed = ", ".join(sorted(ALLOWED_SCANNER_RESULT_PROTOCOLS))
+            raise ValueError(
+                f"scanner result #{index + 1}: protocol must be one of: {allowed}"
+            )
+
+        observed_state = str(item["observed_state"]).strip().upper()
+        if observed_state not in ALLOWED_SCANNER_RESULT_STATES:
+            allowed = ", ".join(sorted(ALLOWED_SCANNER_RESULT_STATES))
+            raise ValueError(
+                f"scanner result #{index + 1}: observed_state must be one of: {allowed}"
+            )
+
         results.append(
             ScannerResult(
                 host_id=str(item["host_id"]),
                 host_address=str(item["host_address"]),
-                protocol=str(item["protocol"]),
+                protocol=protocol,
                 port=port,
-                observed_state=str(item["observed_state"]),
+                observed_state=observed_state,
                 source=str(item["source"]),
                 checked_at=str(item["checked_at"]),
             )
@@ -485,7 +511,7 @@ def main() -> int:
         observed_results = load_scanner_results(scanner_results)
     except ValueError as error:
         print(f"ERROR: {error}")
-        print("FAILED: refusing to render dashboard from invalid scanner resultss")
+        print("FAILED: refusing to render dashboard from invalid scanner results")
         return 1
 
     state = build_state_model(config_data, observed_results=observed_results)
