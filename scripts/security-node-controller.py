@@ -624,6 +624,18 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       vertical-align: top;
     }}
 
+    .observed-results-section {{
+      margin-top: 1.5rem;
+    }}
+
+    .observed-results-heading {{
+      margin-bottom: 0.5rem;
+    }}
+
+    .observed-results-description {{
+      margin: 0.35rem 0 0.75rem;
+    }}
+
     .observed-results-table {{
       border-collapse: collapse;
       width: 100%;
@@ -751,9 +763,9 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       </table>
     </section>
 
-    <section aria-labelledby="observed-scanner-results">
-      <h2 id="observed-scanner-results">Observed Scanner Results</h2>
-      <p>Scanner result model is prepared, but live scanner logic is not implemented yet.</p>
+    <section class="observed-results-section" aria-labelledby="observed-scanner-results">
+      <h2 id="observed-scanner-results" class="observed-results-heading">Observed Scanner Results</h2>
+      <p class="observed-results-description">Scanner result model is prepared, but live scanner logic is not implemented yet.</p>
       <table class="observed-results-table">
         <thead>
           <tr>
