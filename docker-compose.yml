@@ -1,0 +1,12 @@
+services:
+  security-node:
+    build: .
+    container_name: security-node
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config:ro
+      - ./data:/app/data
+      - ./html:/app/html
+      - ./logs:/app/logs
+    # Host networking will be evaluated before enabling real Nmap scans.
+    # network_mode: host

@@ -1,0 +1,28 @@
+# Runtime/private config
+config/*.yaml
+config/*.yml
+!config/.gitkeep
+
+# Runtime output
+data/*
+!data/.gitkeep
+html/*
+!html/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+*.swp
+*.tmp
+
+# Local environment
+.env

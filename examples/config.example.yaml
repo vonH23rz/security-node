@@ -1,0 +1,35 @@
+# Security Node example configuration.
+# This file is public-safe and intentionally generic.
+
+site:
+  name: Example Homelab
+
+controller:
+  id: controller
+  display_name: Security Node Controller
+  network: lan
+  capabilities:
+    - reachability
+    - nmap
+
+networks:
+  - id: lan
+    subnet: 192.168.1.0/24
+    display_name: LAN
+    role: trusted
+
+hosts:
+  - id: router
+    display_name: Router
+    address: 192.168.1.1
+    network: lan
+    expected_ports:
+      - 80
+      - 443
+
+probes: []
+
+accepted_risks: []
+
+external_exposure:
+  expected: []
