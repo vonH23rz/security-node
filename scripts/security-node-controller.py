@@ -603,6 +603,18 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       font-weight: 700;
     }}
 
+    .expected-surface-section {{
+      margin-top: 1.5rem;
+    }}
+
+    .expected-surface-heading {{
+      margin-bottom: 0.5rem;
+    }}
+
+    .expected-surface-description {{
+      margin: 0.35rem 0 0.75rem;
+    }}
+
     .expected-surface-table {{
       border-collapse: collapse;
       width: 100%;
@@ -719,9 +731,9 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       </ul>
     </section>
 
-    <section aria-labelledby="expected-verification-surface">
-      <h2 id="expected-verification-surface">Expected Verification Surface</h2>
-      <p>Configured host ports that should be checked by future scanner logic.</p>
+    <section class="expected-surface-section" aria-labelledby="expected-verification-surface">
+      <h2 id="expected-verification-surface" class="expected-surface-heading">Expected Verification Surface</h2>
+      <p class="expected-surface-description">Configured host ports that should be checked by future scanner logic.</p>
       <table class="expected-surface-table">
         <thead>
           <tr>
