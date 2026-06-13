@@ -18,7 +18,7 @@ The current Controller can:
 - reject stale, future-dated, duplicate, malformed, or unsupported scanner-result evidence;
 - classify non-matching observed evidence as `UNEXPECTED`;
 - compute calm security confidence as `UNKNOWN`, `LOW`, or `MEDIUM`;
-- render a static HTML dashboard with stable CSS hooks and the shared vonH23rz status palette.
+- render a branded static HTML dashboard with stable CSS hooks and the shared vonH23rz status palette.
 
 Live scanner execution is not implemented yet. Security Node does not currently run Nmap, Lynis, Trivy, external exposure checks, or router-specific integrations by itself.
 
@@ -55,14 +55,16 @@ The dashboard is static HTML generated from validated Controller state.
 
 Current dashboard sections include:
 
-- page header with site name, security confidence, verification level, and validation notice;
+- branded page header with logo, security confidence, verification level, and validation notice;
 - Controller State;
 - Configuration Summary;
 - Expected Verification Surface;
 - Observed Scanner Results;
 - footer notice stating that scanner logic is not implemented yet.
 
-The dashboard uses a centered, card-style layout with a system font stack, shared background, rounded white sections, subtle borders, padded tables, and stable CSS class hooks for future polish.
+The dashboard uses a centered, card-style layout with a system font stack, shared background, rounded white sections, subtle borders, padded tables, branded header status panel, controller state item cards, and stable CSS class hooks for future polish.
+
+The dashboard logo and favicon are embedded in the rendered HTML. No separate static asset is required for basic dashboard rendering.
 
 ## Status palette
 
@@ -99,6 +101,115 @@ Current scanner-evidence rules include:
 The scanner evidence freshness window is configurable with `controller.scanner_evidence_max_age_minutes`.
 
 The allowed range is `30` to `1440` minutes in 30-minute steps. The example homelab default is `1440` minutes.
+
+## Quick start
+
+Clone the repository:
+
+```bash
+git clone https://github.com/vonH23rz/security-node.git
+cd security-node
+```
+
+Create a local configuration from the public-safe example:
+
+```bash
+cp examples/config.example.yaml config/config.yaml
+```
+
+Validate the configuration:
+
+```bash
+python3 scripts/validate-config.py config/config.yaml
+```
+
+Render the dashboard locally:
+
+```bash
+python3 scripts/security-node-controller.py \
+    --config config/config.yaml \
+    --output html/index.html
+```
+
+Render with optional imported scanner evidence:
+
+```bash
+python3 scripts/security-node-controller.py \
+    --config config/config.yaml \
+    --scanner-results data/scanner-results.yaml \
+    --output html/index.html
+```
+
+Build or run with Docker Compose:
+
+```bash
+docker compose config
+docker compose up -d --build
+```
+
+The current Compose file mounts:
+
+- `./config` to `/app/config`;
+- `./data` to `/app/data`;
+- `./html` to `/app/html`;
+- `./logs` to `/app/logs`.
+
+Host networking is intentionally not enabled yet. It will be evaluated before real scanner collection is introduced.
+
+## Configuration overview
+
+The example configuration defines:
+
+- site name;
+- Controller identity and display name;
+- Controller network;
+- scanner-evidence freshness window;
+- Controller capabilities;
+- networks;
+- hosts;
+- expected ports;
+- probes placeholder;
+- accepted risks placeholder;
+- external exposure placeholder.
+
+The current example is intentionally generic and public-safe.
+
+## Repository layout
+
+```text
+.
+├── Dockerfile
+├── docker-compose.yml
+├── examples/
+│   └── config.example.yaml
+├── scripts/
+│   ├── security-node-controller.py
+│   └── validate-config.py
+├── tests/
+│   ├── test_config_validation.py
+│   ├── test_controller_validation.py
+│   └── test_skeleton.py
+├── config/
+├── data/
+├── html/
+└── logs/
+```
+
+## Validation
+
+Run the local validation set before committing changes:
+
+```bash
+python3 scripts/validate-config.py examples/config.example.yaml
+python3 -m pytest -q
+docker compose config
+```
+
+Expected current baseline:
+
+```text
+37 passed, 12 subtests passed
+```
 
 ## Initial goals
 
