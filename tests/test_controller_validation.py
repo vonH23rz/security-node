@@ -1814,6 +1814,50 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertNotIn('class="status status-unexpected">UNEXPECTED</span>', rendered)
             self.assertNotIn(">OK</span>", rendered)
 
+class ScannerEvidenceExampleTemplateTest(unittest.TestCase):
+    def test_example_scanner_results_template_renders_after_timestamp_substitution(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            template_path = ROOT / "examples" / "scanner-results.example.yaml"
+            scanner_results_path = Path(tmpdir) / "scanner-results.yaml"
+            output_path = Path(tmpdir) / "dashboard.html"
+
+            fresh_checked_at = datetime.now(timezone.utc).isoformat()
+            scanner_results_path.write_text(
+                template_path.read_text(encoding="utf-8").replace(
+                    "REPLACE_WITH_CURRENT_ISO8601_TIMESTAMP",
+                    fresh_checked_at,
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CONTROLLER),
+                    "--config",
+                    str(EXAMPLE_CONFIG),
+                    "--scanner-results",
+                    str(scanner_results_path),
+                    "--output",
+                    str(output_path),
+                ],
+                cwd=ROOT,
+                check=False,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            rendered = output_path.read_text(encoding="utf-8")
+
+            self.assertIn("Security Confidence: MEDIUM", rendered)
+            self.assertIn('class="security-confidence confidence-medium"', rendered)
+            self.assertIn('class="confidence-badge confidence-medium">MEDIUM</span>', rendered)
+            self.assertIn("Expected Surface NOT VERIFIED: 0", rendered)
+            self.assertIn("Observed Scanner Results UNEXPECTED: 0", rendered)
+            self.assertEqual(rendered.count('class="status status-verified">VERIFIED</span>'), 4)
+            self.assertNotIn("No scanner results collected yet.", rendered)
 
 
 if __name__ == "__main__":

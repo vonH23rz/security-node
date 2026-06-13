@@ -1,0 +1,30 @@
+# Security Node scanner evidence example.
+#
+# This file is public-safe and intentionally generic.
+#
+# IMPORTANT:
+# - Security Node validates scanner evidence freshness.
+# - Replace REPLACE_WITH_CURRENT_ISO8601_TIMESTAMP with a current
+#   ISO-8601 timestamp including timezone offset before rendering.
+# - This example does not run a scanner. It only demonstrates the
+#   imported scanner evidence format expected by the Controller.
+
+- host_id: router
+  host_display_name: Router
+  host_address: 192.168.1.1
+  network: lan
+  protocol: tcp
+  port: 80
+  observed_state: VERIFIED
+  source: example-imported-evidence
+  checked_at: "REPLACE_WITH_CURRENT_ISO8601_TIMESTAMP"
+
+- host_id: router
+  host_display_name: Router
+  host_address: 192.168.1.1
+  network: lan
+  protocol: tcp
+  port: 443
+  observed_state: VERIFIED
+  source: example-imported-evidence
+  checked_at: "REPLACE_WITH_CURRENT_ISO8601_TIMESTAMP"
