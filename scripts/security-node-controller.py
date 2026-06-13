@@ -942,6 +942,13 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       border-bottom: 0;
     }}
 
+    .observed-result-empty-cell {{
+      background: rgba(179, 182, 182, 0.10);
+      color: rgba(83, 88, 95, 0.78);
+      font-style: italic;
+      text-align: center;
+    }}
+
     .observed-results-section {{
       margin-top: 1.5rem;
     }}
