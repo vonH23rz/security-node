@@ -727,6 +727,9 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     security_confidence_class = _html.escape(confidence_class(state.security_confidence))
     security_confidence_text = _html.escape(state.security_confidence)
     security_confidence_badge = render_confidence_badge(state.security_confidence)
+    security_status_strip_class = _html.escape(
+        f"status-strip-{confidence_class(state.security_confidence)}"
+    )
 
     html = f"""<!doctype html>
 <html lang="en">
@@ -752,16 +755,18 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       display: block;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      padding: 1.5rem;
+      padding: 0.75rem;
     }}
 
     .page-main {{
       display: block;
       margin: 0 auto;
-      max-width: 72rem;
+      max-width: 118rem;
+      width: 100%;
     }}
 
     .page-header,
+    .security-status-strip,
     .controller-state-section,
     .configuration-summary-section,
     .expected-surface-section,
@@ -769,20 +774,24 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     .page-footer {{
       background: #ffffff;
       border: 1px solid rgba(83, 88, 95, 0.16);
-      border-radius: 1rem;
-      padding: 1rem;
+      border-radius: 0.85rem;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      padding: 0.9rem 1rem;
     }}
 
     .page-header {{
-      display: grid;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      align-items: center;
+      display: flex;
+      gap: 1.25rem;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
     }}
 
     .page-brand {{
       align-items: center;
       display: flex;
       gap: 0.85rem;
+      min-width: 0;
     }}
 
     .page-logo {{
@@ -797,27 +806,55 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .page-title {{
-      margin: 0 0 0.35rem;
+      line-height: 1.15;
+      margin: 0;
+    }}
+
+    .page-subtitle {{
+      color: rgba(83, 88, 95, 0.86);
+      margin: 0.2rem 0 0;
+    }}
+
+    .page-header-meta {{
+      align-items: center;
+      display: grid;
+      gap: 0.25rem 0.85rem;
+      grid-template-columns: auto auto;
+      text-align: right;
+      white-space: nowrap;
+    }}
+
+    .page-header-meta-label {{
+      color: rgba(83, 88, 95, 0.78);
+      font-weight: 700;
     }}
 
     .page-meta {{
       margin: 0.35rem 0;
     }}
 
-    .page-status-panel {{
-      background: rgba(179, 182, 182, 0.12);
-      border: 1px solid rgba(83, 88, 95, 0.14);
-      border-radius: 0.85rem;
-      display: grid;
-      gap: 0.45rem;
-      padding: 0.75rem;
+    .security-status-strip {{
+      align-items: center;
+      border-left: 0.4rem solid #b3b6b6;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
     }}
 
-    .page-status-panel .page-meta {{
-      margin: 0;
+    .status-strip-confidence-unknown {{
+      border-left-color: #b3b6b6;
     }}
 
-    .page-status-panel .security-confidence {{
+    .status-strip-confidence-low {{
+      border-left-color: #ff4539;
+    }}
+
+    .status-strip-confidence-medium {{
+      border-left-color: #9cc9ff;
+    }}
+
+    .security-status-strip .security-confidence {{
       align-items: center;
       display: flex;
       flex-wrap: wrap;
@@ -825,34 +862,41 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       margin: 0;
     }}
 
-    .site-name,
-    .verification-level,
-    .validation-notice {{
-      opacity: 0.95;
+    .status-strip-meta {{
+      color: rgba(83, 88, 95, 0.78);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      justify-content: flex-end;
+      text-align: right;
     }}
 
-    .controller-state-section {{
-      margin-top: 1.5rem;
+    .top-information-grid {{
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: minmax(24rem, 0.8fr) minmax(36rem, 1.2fr);
+      margin-bottom: 0.75rem;
     }}
 
-    .controller-state-heading {{
-      margin-bottom: 0.5rem;
+    .controller-state-heading,
+    .configuration-summary-heading {{
+      margin: 0 0 0.5rem;
     }}
 
     .controller-state-list {{
       display: grid;
-      gap: 0.75rem;
-      grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      gap: 0.6rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       margin: 0;
     }}
 
     .controller-state-item {{
       background: rgba(179, 182, 182, 0.12);
       border: 1px solid rgba(83, 88, 95, 0.14);
-      border-radius: 0.85rem;
+      border-radius: 0.75rem;
       display: grid;
-      gap: 0.35rem;
-      padding: 0.75rem;
+      gap: 0.25rem;
+      padding: 0.65rem;
     }}
 
     .controller-state-term {{
@@ -864,23 +908,16 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     .controller-state-value {{
       margin: 0;
-      min-height: 2.4rem;
-    }}
-
-    .configuration-summary-section {{
-      margin-top: 1.5rem;
-    }}
-
-    .configuration-summary-heading {{
-      margin-bottom: 0.5rem;
+      min-height: 1.7rem;
     }}
 
     .posture-summary,
     .configuration-summary-list {{
       display: grid;
-      gap: 0.75rem;
-      grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      gap: 0.6rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       list-style: none;
+      margin: 0;
       padding-left: 0;
     }}
 
@@ -888,9 +925,9 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     .configuration-summary-metric {{
       background: rgba(179, 182, 182, 0.12);
       border: 1px solid rgba(83, 88, 95, 0.14);
-      border-radius: 0.85rem;
+      border-radius: 0.75rem;
       margin: 0;
-      padding: 0.75rem;
+      padding: 0.65rem;
     }}
 
     .summary-metric-unexpected,
@@ -899,15 +936,18 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       font-weight: 700;
     }}
 
-    .expected-surface-section {{
-      margin-top: 1.5rem;
+    .expected-surface-section,
+    .observed-results-section {{
+      margin-top: 0.75rem;
     }}
 
-    .expected-surface-heading {{
-      margin-bottom: 0.5rem;
+    .expected-surface-heading,
+    .observed-results-heading {{
+      margin: 0 0 0.5rem;
     }}
 
-    .expected-surface-description {{
+    .expected-surface-description,
+    .observed-results-description {{
       margin: 0.35rem 0 0.75rem;
     }}
 
@@ -915,7 +955,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       overflow-x: auto;
     }}
 
-    .expected-surface-table {{
+    .expected-surface-table,
+    .observed-results-table {{
       border-collapse: collapse;
       min-width: 42rem;
       width: 100%;
@@ -949,26 +990,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       text-align: center;
     }}
 
-    .observed-results-section {{
-      margin-top: 1.5rem;
-    }}
-
-    .observed-results-heading {{
-      margin-bottom: 0.5rem;
-    }}
-
-    .observed-results-description {{
-      margin: 0.35rem 0 0.75rem;
-    }}
-
-    .observed-results-table {{
-      border-collapse: collapse;
-      min-width: 42rem;
-      width: 100%;
-    }}
-
     .page-footer {{
-      margin-top: 1.5rem;
+      margin-top: 0.75rem;
     }}
 
     .scanner-implementation-notice,
@@ -1050,12 +1073,45 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       opacity: 1;
     }}
 
+    @media (max-width: 72rem) {{
+      .top-information-grid {{
+        grid-template-columns: 1fr;
+      }}
+
+      .configuration-summary-list {{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }}
+    }}
+
+    @media (max-width: 56rem) {{
+      .page-header,
+      .security-status-strip {{
+        align-items: flex-start;
+        flex-direction: column;
+      }}
+
+      .page-header-meta {{
+        text-align: left;
+      }}
+
+      .status-strip-meta {{
+        justify-content: flex-start;
+        text-align: left;
+      }}
+
+      .controller-state-list,
+      .configuration-summary-list {{
+        grid-template-columns: 1fr;
+      }}
+    }}
+
     @media (max-width: 48rem) {{
       .page-body {{
         padding: 0.75rem;
       }}
 
       .page-header,
+      .security-status-strip,
       .controller-state-section,
       .configuration-summary-section,
       .expected-surface-section,
@@ -1082,58 +1138,68 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         <img class="page-logo" src="{SECURITY_NODE_LOGO_DATA_URI}" alt="" aria-hidden="true">
         <div class="page-heading-group">
           <h1 class="page-title">Security Node</h1>
-          <p class="page-meta site-name">Site: {_html.escape(state.site_name)}</p>
+          <p class="page-subtitle">Security posture dashboard</p>
         </div>
       </div>
-      <div class="page-status-panel" aria-label="Security Node status summary">
-        <div class="page-meta page-security-confidence">
-          <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
-        </div>
-        <p class="page-meta verification-level">Verification Level: {_html.escape(state.verification_level)}</p>
-        <p class="page-meta validation-notice">Config schema validation passed before rendering.</p>
+      <div class="page-header-meta" aria-label="Security Node metadata">
+        <div class="page-header-meta-label">Generated:</div><div>{now}</div>
+        <div class="page-header-meta-label">Site:</div><div>{_html.escape(state.site_name)}</div>
+        <div class="page-header-meta-label">Controller:</div><div>{_html.escape(state.controller_display_name)}</div>
       </div>
     </header>
 
-    <section class="controller-state-section" aria-labelledby="controller-state">
-      <h2 id="controller-state" class="controller-state-heading">Controller State</h2>
-      <dl class="controller-state-list">
-        <div class="controller-state-item controller-state-controller-id-item">
-          <dt class="controller-state-term controller-state-controller-id-label">Controller ID</dt>
-          <dd class="controller-state-value controller-state-controller-id">{_html.escape(state.controller_id)}</dd>
-        </div>
-        <div class="controller-state-item controller-state-display-name-item">
-          <dt class="controller-state-term controller-state-display-name-label">Controller Display Name</dt>
-          <dd class="controller-state-value controller-state-display-name">{_html.escape(state.controller_display_name)}</dd>
-        </div>
-        <div class="controller-state-item controller-state-network-item">
-          <dt class="controller-state-term controller-state-network-label">Controller Network</dt>
-          <dd class="controller-state-value controller-state-network">{_html.escape(state.controller_network)}</dd>
-        </div>
-        <div class="controller-state-item controller-state-capabilities-item">
-          <dt class="controller-state-term controller-state-capabilities-label">Controller Capabilities</dt>
-          <dd class="controller-state-value controller-state-capabilities">{_html.escape(capabilities)}</dd>
-        </div>
-        <div class="controller-state-item controller-state-scanner-evidence-max-age-item">
-          <dt class="controller-state-term controller-state-scanner-evidence-max-age-label">Scanner Evidence Max Age</dt>
-          <dd class="controller-state-value controller-state-scanner-evidence-max-age">{state.scanner_evidence_max_age_minutes} minutes</dd>
-        </div>
-      </dl>
+    <section class="security-status-strip {security_status_strip_class}" aria-label="Security Node status summary">
+      <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
+      <div class="status-strip-meta">
+        <span>Verification Level: {_html.escape(state.verification_level)}</span>
+        <span>Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</span>
+        <span>Observed Scanner Results UNEXPECTED: {state.observed_result_unexpected_count}</span>
+        <span>Config schema validation passed before rendering.</span>
+      </div>
     </section>
 
-    <section class="configuration-summary-section" aria-labelledby="configuration-summary">
-      <h2 id="configuration-summary" class="configuration-summary-heading">Configuration Summary</h2>
-      <ul class="posture-summary configuration-summary-list">
-        <li class="summary-metric summary-metric-networks configuration-summary-metric configuration-summary-metric-networks">Networks: {state.network_count}</li>
-        <li class="summary-metric summary-metric-hosts configuration-summary-metric configuration-summary-metric-hosts">Hosts: {state.host_count}</li>
-        <li class="summary-metric summary-metric-probes configuration-summary-metric configuration-summary-metric-probes">Probes: {state.probe_count}</li>
-        <li class="summary-metric summary-metric-accepted-risks configuration-summary-metric configuration-summary-metric-accepted-risks">Accepted Risks: {state.accepted_risk_count}</li>
-        <li class="summary-metric summary-metric-external-exposure configuration-summary-metric configuration-summary-metric-external-exposure">External Exposure Expectations: {state.external_exposure_expected_count}</li>
-        <li class="summary-metric summary-metric-expected-surface configuration-summary-metric configuration-summary-metric-expected-surface">Expected Verification Surface Items: {state.expected_surface_count}</li>
-        <li class="summary-metric summary-metric-expected-not-verified configuration-summary-metric configuration-summary-metric-expected-not-verified">Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</li>
-        <li class="summary-metric summary-metric-observed-results configuration-summary-metric configuration-summary-metric-observed-results">Observed Scanner Results: {state.observed_result_count}</li>
-        <li class="summary-metric summary-metric-unexpected configuration-summary-metric configuration-summary-metric-unexpected">Observed Scanner Results UNEXPECTED: {state.observed_result_unexpected_count}</li>
-      </ul>
-    </section>
+    <div class="top-information-grid">
+      <section class="controller-state-section" aria-labelledby="controller-state">
+        <h2 id="controller-state" class="controller-state-heading">Controller State</h2>
+        <dl class="controller-state-list">
+          <div class="controller-state-item controller-state-controller-id-item">
+            <dt class="controller-state-term controller-state-controller-id-label">Controller ID</dt>
+            <dd class="controller-state-value controller-state-controller-id">{_html.escape(state.controller_id)}</dd>
+          </div>
+          <div class="controller-state-item controller-state-display-name-item">
+            <dt class="controller-state-term controller-state-display-name-label">Controller Display Name</dt>
+            <dd class="controller-state-value controller-state-display-name">{_html.escape(state.controller_display_name)}</dd>
+          </div>
+          <div class="controller-state-item controller-state-network-item">
+            <dt class="controller-state-term controller-state-network-label">Controller Network</dt>
+            <dd class="controller-state-value controller-state-network">{_html.escape(state.controller_network)}</dd>
+          </div>
+          <div class="controller-state-item controller-state-capabilities-item">
+            <dt class="controller-state-term controller-state-capabilities-label">Controller Capabilities</dt>
+            <dd class="controller-state-value controller-state-capabilities">{_html.escape(capabilities)}</dd>
+          </div>
+          <div class="controller-state-item controller-state-scanner-evidence-max-age-item">
+            <dt class="controller-state-term controller-state-scanner-evidence-max-age-label">Scanner Evidence Max Age</dt>
+            <dd class="controller-state-value controller-state-scanner-evidence-max-age">{state.scanner_evidence_max_age_minutes} minutes</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="configuration-summary-section" aria-labelledby="configuration-summary">
+        <h2 id="configuration-summary" class="configuration-summary-heading">Configuration Summary</h2>
+        <ul class="posture-summary configuration-summary-list">
+          <li class="summary-metric summary-metric-networks configuration-summary-metric configuration-summary-metric-networks">Networks: {state.network_count}</li>
+          <li class="summary-metric summary-metric-hosts configuration-summary-metric configuration-summary-metric-hosts">Hosts: {state.host_count}</li>
+          <li class="summary-metric summary-metric-probes configuration-summary-metric configuration-summary-metric-probes">Probes: {state.probe_count}</li>
+          <li class="summary-metric summary-metric-accepted-risks configuration-summary-metric configuration-summary-metric-accepted-risks">Accepted Risks: {state.accepted_risk_count}</li>
+          <li class="summary-metric summary-metric-external-exposure configuration-summary-metric configuration-summary-metric-external-exposure">External Exposure Expectations: {state.external_exposure_expected_count}</li>
+          <li class="summary-metric summary-metric-expected-surface configuration-summary-metric configuration-summary-metric-expected-surface">Expected Verification Surface Items: {state.expected_surface_count}</li>
+          <li class="summary-metric summary-metric-expected-not-verified configuration-summary-metric configuration-summary-metric-expected-not-verified">Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</li>
+          <li class="summary-metric summary-metric-observed-results configuration-summary-metric configuration-summary-metric-observed-results">Observed Scanner Results: {state.observed_result_count}</li>
+          <li class="summary-metric summary-metric-unexpected configuration-summary-metric configuration-summary-metric-unexpected">Observed Scanner Results UNEXPECTED: {state.observed_result_unexpected_count}</li>
+        </ul>
+      </section>
+    </div>
 
     <section class="expected-surface-section" aria-labelledby="expected-verification-surface">
       <h2 id="expected-verification-surface" class="expected-surface-heading">Expected Verification Surface</h2>
