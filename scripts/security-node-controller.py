@@ -1129,6 +1129,59 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         padding: 0.4rem 0.5rem;
       }}
     }}
+
+    /* Security Node shared XS typography sizing baseline.
+       Matches the Sanity Node Variant XS compact dashboard sizing.
+       Font family and #53585f text color already exist in Security Node;
+       this layer only aligns compact type scale and line-height. */
+    .page-body {{
+      font-size: 12px !important;
+      line-height: 1.29 !important;
+    }}
+
+    .page-title {{
+      font-size: 22px !important;
+      line-height: 1.12 !important;
+    }}
+
+    .controller-state-heading,
+    .configuration-summary-heading,
+    .expected-surface-heading,
+    .observed-results-heading {{
+      font-size: 15.5px !important;
+    }}
+
+    .page-subtitle,
+    .page-header-meta,
+    .security-confidence,
+    .status-strip-meta,
+    .controller-state-value,
+    .summary-metric,
+    .configuration-summary-metric,
+    .page-meta,
+    .expected-surface-cell,
+    .observed-result-cell,
+    .page-footer {{
+      font-size: 12px !important;
+    }}
+
+    .page-header-meta-label,
+    .controller-state-term,
+    .expected-surface-header-cell,
+    .observed-results-header-cell {{
+      font-size: 10px !important;
+    }}
+
+    .summary-metric,
+    .configuration-summary-metric {{
+      line-height: 1.22 !important;
+    }}
+
+    .badge,
+    .confidence-badge {{
+      font-size: 9.5px !important;
+    }}
+
   </style>
 </head>
 <body class="page-body">
