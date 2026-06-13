@@ -651,7 +651,19 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
   <title>Security Node</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    :root {{
+      --vonh-red: #ff4539;
+      --vonh-blue: #9cc9ff;
+      --vonh-green: #34c759;
+      --vonh-indigo: #0a84ff;
+      --vonh-grey: #b3b6b6;
+      --vonh-background: #f3f5f7;
+      --vonh-text: #53585f;
+    }}
+
     .page-body {{
+      color: #53585f;
+      background: #f3f5f7;
       display: block;
     }}
 
@@ -787,26 +799,26 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     .status-not-verified,
     .status-unknown {{
-      background: #f3f4f6;
-      color: #6b7280;
+      background: #b3b6b6;
+      color: #53585f;
       opacity: 1;
     }}
 
     .status-verified {{
-      background: #dcfce7;
-      color: #15803d;
+      background: #34c759;
+      color: #ffffff;
       opacity: 1;
     }}
 
     .status-accepted {{
-      background: #dbeafe;
-      color: #2563eb;
+      background: #0a84ff;
+      color: #ffffff;
       opacity: 1;
     }}
 
     .status-unexpected {{
-      background: #fee2e2;
-      color: #b91c1c;
+      background: #ff4539;
+      color: #ffffff;
       font-weight: 800;
     }}
 
@@ -830,20 +842,20 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .confidence-unknown {{
-      background: #f3f4f6;
-      color: #6b7280;
+      background: #b3b6b6;
+      color: #53585f;
       opacity: 1;
     }}
 
     .confidence-low {{
-      background: #fee2e2;
-      color: #b91c1c;
+      background: #ff4539;
+      color: #ffffff;
       font-weight: 800;
     }}
 
     .confidence-medium {{
-      background: #ccfbf1;
-      color: #0f766e;
+      background: #9cc9ff;
+      color: #53585f;
       opacity: 1;
     }}
   </style>
