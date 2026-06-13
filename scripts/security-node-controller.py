@@ -633,6 +633,90 @@ def render_observed_result_rows(state: SecurityNodeState) -> str:
     return "\n".join(rows)
 
 
+SECURITY_NODE_LOGO_DATA_URI = (
+    "data:image/png;base64,"
+    "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"
+)
+
+
 def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     """Render the current dashboard from normalized Controller state."""
 
@@ -649,6 +733,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 <head>
   <meta charset="utf-8">
   <title>Security Node</title>
+  <link rel="icon" type="image/png" href="{SECURITY_NODE_LOGO_DATA_URI}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {{
@@ -689,11 +774,30 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .page-header {{
+      display: grid;
+      gap: 1rem;
       margin-bottom: 1.5rem;
     }}
 
+    .page-brand {{
+      align-items: center;
+      display: flex;
+      gap: 0.85rem;
+    }}
+
+    .page-logo {{
+      border-radius: 0.85rem;
+      flex: 0 0 auto;
+      height: 3.2rem;
+      width: 3.2rem;
+    }}
+
+    .page-heading-group {{
+      min-width: 0;
+    }}
+
     .page-title {{
-      margin-bottom: 0.5rem;
+      margin: 0 0 0.35rem;
     }}
 
     .page-meta {{
@@ -941,8 +1045,13 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 <body class="page-body">
   <main class="page-main">
     <header class="page-header">
-      <h1 class="page-title">Security Node</h1>
-      <p class="page-meta site-name">Site: {_html.escape(state.site_name)}</p>
+      <div class="page-brand">
+        <img class="page-logo" src="{SECURITY_NODE_LOGO_DATA_URI}" alt="" aria-hidden="true">
+        <div class="page-heading-group">
+          <h1 class="page-title">Security Node</h1>
+          <p class="page-meta site-name">Site: {_html.escape(state.site_name)}</p>
+        </div>
+      </div>
       <div class="page-meta page-security-confidence">
         <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
       </div>
