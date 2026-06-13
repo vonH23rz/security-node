@@ -724,7 +724,6 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     capabilities = ", ".join(state.controller_capabilities) if state.controller_capabilities else "none"
     expected_surface_rows = render_expected_surface_rows(state)
     observed_result_rows = render_observed_result_rows(state)
-    security_confidence_class = _html.escape(confidence_class(state.security_confidence))
     security_confidence_text = _html.escape(state.security_confidence)
     security_confidence_badge = render_confidence_badge(state.security_confidence)
     security_status_strip_class = _html.escape(
@@ -1144,16 +1143,17 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
 
-    /* Security Node table status pill sizing.
-       Match table status pills to the existing Security Confidence pill dimensions
-       without changing the Security Confidence pill itself. */
+    /* Security Node compact table status pill sizing.
+       Keep Security Confidence unchanged; table status pills are compacted
+       to visually match the confidence pill impression. */
     .expected-surface-status .badge,
     .observed-result-state .badge {{
       border-radius: 999px !important;
       display: inline-block !important;
+      font-size: 8px !important;
       font-weight: 700 !important;
       line-height: 1 !important;
-      padding: 0.25rem 0.5rem !important;
+      padding: 0.10rem 0.30rem !important;
       white-space: nowrap !important;
     }}
 
@@ -1229,7 +1229,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     </header>
 
     <section class="security-status-strip {security_status_strip_class}" aria-label="Security Node status summary">
-      <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
+      <p class="security-confidence" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
       <div class="status-strip-meta">
         <span>Verification Level: {_html.escape(state.verification_level)}</span>
         <span>Expected Surface NOT VERIFIED: {state.expected_surface_not_verified_count}</span>
