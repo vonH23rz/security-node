@@ -737,16 +737,25 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     .posture-summary,
     .configuration-summary-list {{
-      padding-left: 1.25rem;
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+      list-style: none;
+      padding-left: 0;
     }}
 
     .summary-metric,
     .configuration-summary-metric {{
-      margin: 0.25rem 0;
+      background: rgba(179, 182, 182, 0.12);
+      border: 1px solid rgba(83, 88, 95, 0.14);
+      border-radius: 0.85rem;
+      margin: 0;
+      padding: 0.75rem;
     }}
 
     .summary-metric-unexpected,
     .configuration-summary-metric-unexpected {{
+      border-color: rgba(255, 69, 57, 0.32);
       font-weight: 700;
     }}
 
