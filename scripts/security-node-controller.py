@@ -846,6 +846,15 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       margin: 0;
     }}
 
+    .controller-state-item {{
+      background: rgba(179, 182, 182, 0.12);
+      border: 1px solid rgba(83, 88, 95, 0.14);
+      border-radius: 0.85rem;
+      display: grid;
+      gap: 0.35rem;
+      padding: 0.75rem;
+    }}
+
     .controller-state-term {{
       color: rgba(83, 88, 95, 0.78);
       font-size: 0.85rem;
@@ -854,12 +863,8 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .controller-state-value {{
-      background: rgba(179, 182, 182, 0.12);
-      border: 1px solid rgba(83, 88, 95, 0.14);
-      border-radius: 0.85rem;
       margin: 0;
       min-height: 2.4rem;
-      padding: 0.75rem;
     }}
 
     .configuration-summary-section {{
@@ -1085,16 +1090,26 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     <section class="controller-state-section" aria-labelledby="controller-state">
       <h2 id="controller-state" class="controller-state-heading">Controller State</h2>
       <dl class="controller-state-list">
-        <dt class="controller-state-term controller-state-controller-id-label">Controller ID</dt>
-        <dd class="controller-state-value controller-state-controller-id">{_html.escape(state.controller_id)}</dd>
-        <dt class="controller-state-term controller-state-display-name-label">Controller Display Name</dt>
-        <dd class="controller-state-value controller-state-display-name">{_html.escape(state.controller_display_name)}</dd>
-        <dt class="controller-state-term controller-state-network-label">Controller Network</dt>
-        <dd class="controller-state-value controller-state-network">{_html.escape(state.controller_network)}</dd>
-        <dt class="controller-state-term controller-state-capabilities-label">Controller Capabilities</dt>
-        <dd class="controller-state-value controller-state-capabilities">{_html.escape(capabilities)}</dd>
-        <dt class="controller-state-term controller-state-scanner-evidence-max-age-label">Scanner Evidence Max Age</dt>
-        <dd class="controller-state-value controller-state-scanner-evidence-max-age">{state.scanner_evidence_max_age_minutes} minutes</dd>
+        <div class="controller-state-item controller-state-controller-id-item">
+          <dt class="controller-state-term controller-state-controller-id-label">Controller ID</dt>
+          <dd class="controller-state-value controller-state-controller-id">{_html.escape(state.controller_id)}</dd>
+        </div>
+        <div class="controller-state-item controller-state-display-name-item">
+          <dt class="controller-state-term controller-state-display-name-label">Controller Display Name</dt>
+          <dd class="controller-state-value controller-state-display-name">{_html.escape(state.controller_display_name)}</dd>
+        </div>
+        <div class="controller-state-item controller-state-network-item">
+          <dt class="controller-state-term controller-state-network-label">Controller Network</dt>
+          <dd class="controller-state-value controller-state-network">{_html.escape(state.controller_network)}</dd>
+        </div>
+        <div class="controller-state-item controller-state-capabilities-item">
+          <dt class="controller-state-term controller-state-capabilities-label">Controller Capabilities</dt>
+          <dd class="controller-state-value controller-state-capabilities">{_html.escape(capabilities)}</dd>
+        </div>
+        <div class="controller-state-item controller-state-scanner-evidence-max-age-item">
+          <dt class="controller-state-term controller-state-scanner-evidence-max-age-label">Scanner Evidence Max Age</dt>
+          <dd class="controller-state-value controller-state-scanner-evidence-max-age">{state.scanner_evidence_max_age_minutes} minutes</dd>
+        </div>
       </dl>
     </section>
 
