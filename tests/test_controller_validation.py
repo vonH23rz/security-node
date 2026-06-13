@@ -55,7 +55,7 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="page-header-meta-label">Controller:</div><div>Security Node Controller</div>', rendered)
 
             self.assertIn('class="security-status-strip status-strip-confidence-unknown" aria-label="Security Node status summary"', rendered)
-            self.assertIn('class="security-confidence confidence-unknown"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: UNKNOWN"', rendered)
             self.assertIn('aria-label="Security Confidence: UNKNOWN"', rendered)
             self.assertIn('class="confidence-badge confidence-unknown">UNKNOWN</span>', rendered)
             self.assertIn("<span>Verification Level: Controller only</span>", rendered)
@@ -178,7 +178,8 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="summary-metric summary-metric-observed-results configuration-summary-metric configuration-summary-metric-observed-results"', rendered)
             self.assertIn('class="summary-metric summary-metric-unexpected configuration-summary-metric configuration-summary-metric-unexpected"', rendered)
             self.assertIn("Security Confidence: UNKNOWN", rendered)
-            self.assertIn('class="security-confidence confidence-unknown"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-unknown" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: UNKNOWN"', rendered)
             self.assertIn('class="confidence-badge confidence-unknown">UNKNOWN</span>', rendered)
             self.assertIn("imported-test-evidence", rendered)
             self.assertIn('class="observed-result-cell observed-result-checked-at">', rendered)
@@ -247,7 +248,8 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="summary-metric summary-metric-observed-results configuration-summary-metric configuration-summary-metric-observed-results"', rendered)
             self.assertIn('class="summary-metric summary-metric-unexpected configuration-summary-metric configuration-summary-metric-unexpected"', rendered)
             self.assertIn("Security Confidence: LOW", rendered)
-            self.assertIn('class="security-confidence confidence-low"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-low" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: LOW"', rendered)
             self.assertIn('class="confidence-badge confidence-low">LOW</span>', rendered)
             self.assertIn("imported-nonmatching-test-evidence", rendered)
             self.assertEqual(rendered.count('class="observed-result-row"'), 1)
@@ -302,7 +304,8 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn("Observed Scanner Results: 1", rendered)
             self.assertIn("Observed Scanner Results UNEXPECTED: 0", rendered)
             self.assertIn("Security Confidence: UNKNOWN", rendered)
-            self.assertIn('class="security-confidence confidence-unknown"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-unknown" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: UNKNOWN"', rendered)
             self.assertIn('class="confidence-badge confidence-unknown">UNKNOWN</span>', rendered)
             self.assertIn("imported-matching-test-evidence", rendered)
             self.assertEqual(rendered.count('class="observed-result-row"'), 1)
@@ -357,7 +360,8 @@ class ControllerValidationTests(unittest.TestCase):
 
             rendered = output.read_text(encoding="utf-8")
 
-            self.assertIn('class="security-confidence confidence-unknown"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-unknown" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: UNKNOWN"', rendered)
             self.assertIn('class="confidence-badge confidence-unknown">UNKNOWN</span>', rendered)
             self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Observed Scanner Results: 1", rendered)
@@ -410,7 +414,8 @@ class ControllerValidationTests(unittest.TestCase):
 
             rendered = output.read_text(encoding="utf-8")
 
-            self.assertIn('class="security-confidence confidence-low"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-low" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: LOW"', rendered)
             self.assertIn('class="confidence-badge confidence-low">LOW</span>', rendered)
             self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Observed Scanner Results: 1", rendered)
@@ -463,7 +468,8 @@ class ControllerValidationTests(unittest.TestCase):
 
             rendered = output.read_text(encoding="utf-8")
 
-            self.assertIn('class="security-confidence confidence-low"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-low" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: LOW"', rendered)
             self.assertIn('class="confidence-badge confidence-low">LOW</span>', rendered)
             self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Observed Scanner Results: 1", rendered)
@@ -519,7 +525,8 @@ class ControllerValidationTests(unittest.TestCase):
 
             rendered = output.read_text(encoding="utf-8")
 
-            self.assertIn('class="security-confidence confidence-unknown"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-unknown" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: UNKNOWN"', rendered)
             self.assertIn('class="confidence-badge confidence-unknown">UNKNOWN</span>', rendered)
             self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Observed Scanner Results: 1", rendered)
@@ -572,7 +579,8 @@ class ControllerValidationTests(unittest.TestCase):
 
             rendered = output.read_text(encoding="utf-8")
 
-            self.assertIn('class="security-confidence confidence-low"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-low" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: LOW"', rendered)
             self.assertIn('class="confidence-badge confidence-low">LOW</span>', rendered)
             self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Observed Scanner Results: 1", rendered)
@@ -625,7 +633,8 @@ class ControllerValidationTests(unittest.TestCase):
 
             rendered = output.read_text(encoding="utf-8")
 
-            self.assertIn('class="security-confidence confidence-low"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-low" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: LOW"', rendered)
             self.assertIn('class="confidence-badge confidence-low">LOW</span>', rendered)
             self.assertIn("Expected Surface NOT VERIFIED: 2", rendered)
             self.assertIn("Observed Scanner Results: 1", rendered)
@@ -1683,7 +1692,8 @@ class ControllerValidationTests(unittest.TestCase):
             self.assertIn('class="summary-metric summary-metric-observed-results configuration-summary-metric configuration-summary-metric-observed-results"', rendered)
             self.assertIn('class="summary-metric summary-metric-unexpected configuration-summary-metric configuration-summary-metric-unexpected"', rendered)
             self.assertIn("Security Confidence: MEDIUM", rendered)
-            self.assertIn('class="security-confidence confidence-medium"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-medium" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: MEDIUM"', rendered)
             self.assertIn('class="confidence-badge confidence-medium">MEDIUM</span>', rendered)
             self.assertIn("imported-full-surface-test-evidence", rendered)
             self.assertEqual(rendered.count('class="observed-result-row"'), 2)
@@ -1735,7 +1745,8 @@ class ScannerEvidenceExampleTemplateTest(unittest.TestCase):
             rendered = output_path.read_text(encoding="utf-8")
 
             self.assertIn("Security Confidence: MEDIUM", rendered)
-            self.assertIn('class="security-confidence confidence-medium"', rendered)
+            self.assertIn('class="security-status-strip status-strip-confidence-medium" aria-label="Security Node status summary"', rendered)
+            self.assertIn('class="security-confidence" aria-label="Security Confidence: MEDIUM"', rendered)
             self.assertIn('class="confidence-badge confidence-medium">MEDIUM</span>', rendered)
             self.assertIn("Expected Surface NOT VERIFIED: 0", rendered)
             self.assertIn("Observed Scanner Results UNEXPECTED: 0", rendered)
