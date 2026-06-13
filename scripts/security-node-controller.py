@@ -762,8 +762,13 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       margin: 0.35rem 0 0.75rem;
     }}
 
+    .table-scroll {{
+      overflow-x: auto;
+    }}
+
     .expected-surface-table {{
       border-collapse: collapse;
+      min-width: 42rem;
       width: 100%;
     }}
 
@@ -802,6 +807,7 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     .observed-results-table {{
       border-collapse: collapse;
+      min-width: 42rem;
       width: 100%;
     }}
 
@@ -887,6 +893,30 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       color: #53585f;
       opacity: 1;
     }}
+
+    @media (max-width: 48rem) {{
+      .page-body {{
+        padding: 0.75rem;
+      }}
+
+      .page-header,
+      .controller-state-section,
+      .configuration-summary-section,
+      .expected-surface-section,
+      .observed-results-section,
+      .page-footer {{
+        border-radius: 0.75rem;
+        padding: 0.85rem;
+      }}
+
+      .expected-surface-header-cell,
+      .expected-surface-cell,
+      .observed-results-header-cell,
+      .observed-result-cell {{
+        font-size: 0.9rem;
+        padding: 0.4rem 0.5rem;
+      }}
+    }}
   </style>
 </head>
 <body class="page-body">
@@ -935,8 +965,9 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     <section class="expected-surface-section" aria-labelledby="expected-verification-surface">
       <h2 id="expected-verification-surface" class="expected-surface-heading">Expected Verification Surface</h2>
       <p class="expected-surface-description">Configured host ports that should be checked by future scanner logic.</p>
-      <table class="expected-surface-table">
-        <thead>
+      <div class="table-scroll expected-surface-table-scroll">
+        <table class="expected-surface-table">
+          <thead>
           <tr class="expected-surface-header-row">
             <th class="expected-surface-header-cell expected-surface-header-host">Host</th>
             <th class="expected-surface-header-cell expected-surface-header-address">Address</th>
@@ -948,15 +979,17 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         </thead>
         <tbody>
 {expected_surface_rows}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="observed-results-section" aria-labelledby="observed-scanner-results">
       <h2 id="observed-scanner-results" class="observed-results-heading">Observed Scanner Results</h2>
       <p class="observed-results-description">Scanner result model is prepared, but live scanner logic is not implemented yet.</p>
-      <table class="observed-results-table">
-        <thead>
+      <div class="table-scroll observed-results-table-scroll">
+        <table class="observed-results-table">
+          <thead>
           <tr class="observed-results-header-row">
             <th class="observed-results-header-cell observed-results-header-host-id">Host ID</th>
             <th class="observed-results-header-cell observed-results-header-address">Address</th>
@@ -969,8 +1002,9 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
         </thead>
         <tbody>
 {observed_result_rows}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <footer class="page-footer">
