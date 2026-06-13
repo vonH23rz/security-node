@@ -715,16 +715,26 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
     }}
 
     .controller-state-list {{
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
       margin: 0;
     }}
 
     .controller-state-term {{
+      color: rgba(83, 88, 95, 0.78);
+      font-size: 0.85rem;
       font-weight: 700;
+      margin: 0;
     }}
 
     .controller-state-value {{
-      margin-left: 0;
-      margin-bottom: 0.5rem;
+      background: rgba(179, 182, 182, 0.12);
+      border: 1px solid rgba(83, 88, 95, 0.14);
+      border-radius: 0.85rem;
+      margin: 0;
+      min-height: 2.4rem;
+      padding: 0.75rem;
     }}
 
     .configuration-summary-section {{
