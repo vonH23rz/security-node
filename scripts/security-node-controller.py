@@ -1130,6 +1130,33 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       }}
     }}
 
+
+    /* Security Node full-width Controller State layout.
+       Keep Controller State visually prominent across the full dashboard width.
+       The five controller-state cards are shown one after another on desktop. */
+    .controller-state-section,
+    .configuration-summary-section {{
+      grid-column: 1 / -1;
+    }}
+
+    .controller-state-list {{
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }}
+
+
+    /* Security Node table status pill sizing.
+       Match table status pills to the existing Security Confidence pill dimensions
+       without changing the Security Confidence pill itself. */
+    .expected-surface-status .badge,
+    .observed-result-state .badge {{
+      border-radius: 999px !important;
+      display: inline-block !important;
+      font-weight: 700 !important;
+      line-height: 1 !important;
+      padding: 0.25rem 0.5rem !important;
+      white-space: nowrap !important;
+    }}
+
     /* Security Node shared XS typography sizing baseline.
        Matches the Sanity Node Variant XS compact dashboard sizing.
        Font family and #53585f text color already exist in Security Node;
