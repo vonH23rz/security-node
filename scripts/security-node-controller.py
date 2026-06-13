@@ -804,6 +804,27 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       margin: 0.35rem 0;
     }}
 
+    .page-status-panel {{
+      background: rgba(179, 182, 182, 0.12);
+      border: 1px solid rgba(83, 88, 95, 0.14);
+      border-radius: 0.85rem;
+      display: grid;
+      gap: 0.45rem;
+      padding: 0.75rem;
+    }}
+
+    .page-status-panel .page-meta {{
+      margin: 0;
+    }}
+
+    .page-status-panel .security-confidence {{
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 0;
+    }}
+
     .site-name,
     .verification-level,
     .validation-notice {{
@@ -1052,11 +1073,13 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
           <p class="page-meta site-name">Site: {_html.escape(state.site_name)}</p>
         </div>
       </div>
-      <div class="page-meta page-security-confidence">
-        <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
+      <div class="page-status-panel" aria-label="Security Node status summary">
+        <div class="page-meta page-security-confidence">
+          <p class="security-confidence {security_confidence_class}" aria-label="Security Confidence: {security_confidence_text}"><span class="confidence-label">Security Confidence:</span> {security_confidence_badge}</p>
+        </div>
+        <p class="page-meta verification-level">Verification Level: {_html.escape(state.verification_level)}</p>
+        <p class="page-meta validation-notice">Config schema validation passed before rendering.</p>
       </div>
-      <p class="page-meta verification-level">Verification Level: {_html.escape(state.verification_level)}</p>
-      <p class="page-meta validation-notice">Config schema validation passed before rendering.</p>
     </header>
 
     <section class="controller-state-section" aria-labelledby="controller-state">
