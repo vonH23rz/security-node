@@ -665,10 +665,27 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       color: #53585f;
       background: #f3f5f7;
       display: block;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 1.5rem;
     }}
 
     .page-main {{
       display: block;
+      margin: 0 auto;
+      max-width: 72rem;
+    }}
+
+    .page-header,
+    .controller-state-section,
+    .configuration-summary-section,
+    .expected-surface-section,
+    .observed-results-section,
+    .page-footer {{
+      background: #ffffff;
+      border: 1px solid rgba(83, 88, 95, 0.16);
+      border-radius: 1rem;
+      padding: 1rem;
     }}
 
     .page-header {{
@@ -752,8 +769,23 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
 
     .expected-surface-header-cell,
     .expected-surface-cell,
-    .observed-results-header-cell {{
+    .observed-results-header-cell,
+    .observed-result-cell {{
+      border-bottom: 1px solid rgba(83, 88, 95, 0.16);
+      padding: 0.5rem 0.65rem;
+      text-align: left;
       vertical-align: top;
+    }}
+
+    .expected-surface-header-cell,
+    .observed-results-header-cell {{
+      background: rgba(179, 182, 182, 0.18);
+      font-weight: 700;
+    }}
+
+    .expected-surface-row:last-child .expected-surface-cell,
+    .observed-result-row:last-child .observed-result-cell {{
+      border-bottom: 0;
     }}
 
     .observed-results-section {{
@@ -782,9 +814,6 @@ def render_dashboard(output: Path, state: SecurityNodeState) -> None:
       margin: 0.35rem 0;
     }}
 
-    .observed-result-cell {{
-      vertical-align: top;
-    }}
 
     .status {{
       border: 1px solid currentColor;
